@@ -127,6 +127,7 @@ object SetOps : TemplateGroupBase() {
             return set
             """
         }
+        sample("samples.collections.Collections.Combining.unionOfIterables")
     }
 
     val f_intersect = fn("intersect(other: Iterable<T>)") {
@@ -150,6 +151,7 @@ object SetOps : TemplateGroupBase() {
             return set
             """
         }
+        sample("samples.collections.Collections.Combining.intersectionOfIterables")
     }
 
     val f_subtract = fn("subtract(other: Iterable<T>)") {
@@ -171,6 +173,7 @@ object SetOps : TemplateGroupBase() {
             return set
             """
         }
+        sample("samples.collections.Collections.Combining.differenceOfIterables")
     }
 
 }

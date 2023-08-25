@@ -1033,4 +1033,31 @@ class Collections {
         }
 
     }
+
+    class Combining {
+
+        @Sample
+        fun unionOfIterables() {
+            val union = listOf("Apple", "Banana", "Orange", "Apple").union(
+                listOf("Orange", "Lime")
+            )
+            assertPrints(union, "[Apple, Banana, Orange, Lime]")
+        }
+
+        @Sample
+        fun intersectionOfIterables() {
+            val intersection = listOf("Apple", "Banana", "Orange", "Banana", "Apple").intersect(
+                listOf("Banana", "Orange", "Lime")
+            )
+            assertPrints(intersection, "[Banana, Orange]")
+        }
+
+        @Sample
+        fun differenceOfIterables() {
+            val difference = listOf("Apple", "Banana", "Orange", "Apple", "Lime").subtract(
+                listOf("Banana", "Orange")
+            )
+            assertPrints(difference, "[Apple, Lime]")
+        }
+    }
 }
