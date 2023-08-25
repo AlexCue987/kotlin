@@ -1668,6 +1668,8 @@ public inline fun <T, K> Iterable<T>.distinctBy(selector: (T) -> K): List<T> {
  * The returned set preserves the element iteration order of the original collection.
  * 
  * To get a set containing all elements that are contained at least in one of these collections use [union].
+ * 
+ * @sample samples.collections.Collections.Combining.intersectionOfIterables
  */
 public infix fun <T> Iterable<T>.intersect(other: Iterable<T>): Set<T> {
     val set = this.toMutableSet()
@@ -1679,6 +1681,8 @@ public infix fun <T> Iterable<T>.intersect(other: Iterable<T>): Set<T> {
  * Returns a set containing all elements that are contained by this collection and not contained by the specified collection.
  * 
  * The returned set preserves the element iteration order of the original collection.
+ * 
+ * @sample samples.collections.Collections.Combining.differenceOfIterables
  */
 public infix fun <T> Iterable<T>.subtract(other: Iterable<T>): Set<T> {
     val set = this.toMutableSet()
@@ -1706,6 +1710,8 @@ public fun <T> Iterable<T>.toMutableSet(): MutableSet<T> {
  * in the order of the [other] collection.
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
+ * 
+ * @sample samples.collections.Collections.Combining.unionOfIterables
  */
 public infix fun <T> Iterable<T>.union(other: Iterable<T>): Set<T> {
     val set = this.toMutableSet()
