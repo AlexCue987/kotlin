@@ -127,7 +127,7 @@ object SetOps : TemplateGroupBase() {
             return set
             """
         }
-        sample("samples.collections.Collections.Combining.unionOf$primitive")
+        sample("samples.collections.Collections.Combining.unionOf${primitive ?: "Generic"}")
     }
 
     val f_intersect = fn("intersect(other: Iterable<T>)") {
