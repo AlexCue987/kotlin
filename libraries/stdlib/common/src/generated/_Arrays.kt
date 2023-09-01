@@ -12132,7 +12132,7 @@ public fun CharArray.toMutableSet(): MutableSet<Char> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfnull
+ * @sample samples.collections.Collections.Combining.unionOfGeneric
  */
 public infix fun <T> Array<out T>.union(other: Iterable<T>): Set<T> {
     val set = this.toMutableSet()

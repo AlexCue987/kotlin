@@ -1707,7 +1707,7 @@ public fun <T> Iterable<T>.toMutableSet(): MutableSet<T> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfnull
+ * @sample samples.collections.Collections.Combining.unionOfGeneric
  */
 public infix fun <T> Iterable<T>.union(other: Iterable<T>): Set<T> {
     val set = this.toMutableSet()
