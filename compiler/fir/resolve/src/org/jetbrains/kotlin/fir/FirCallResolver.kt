@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
+import org.jetbrains.kotlin.fir.resolve.transformers.doesResolutionResultOverrideOtherToPreserveCompatibility
 import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
@@ -53,6 +54,8 @@ import org.jetbrains.kotlin.resolve.calls.tower.CandidateApplicability
 import org.jetbrains.kotlin.resolve.calls.tower.isSuccess
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.CodeFragmentAdjustment
+import org.jetbrains.kotlin.util.OperatorNameConventions
+import org.jetbrains.kotlin.utils.addToStdlib.runIf
 
 class FirCallResolver(
     private val components: FirAbstractBodyResolveTransformer.BodyResolveTransformerComponents,
@@ -325,6 +328,15 @@ class FirCallResolver(
 
         when {
             referencedSymbol is FirClassLikeSymbol<*> -> {
+                val extraDiagnostic =
+                    runIf(reducedCandidates.singleOrNull()?.doesResolutionResultOverrideOtherToPreserveCompatibility() == true) {
+                        ConeResolutionResultOverridesOtherToPreserveCompatibility
+                    }
+                val nonFatalDiagnosticFromExpressionWithExtra = when {
+                    nonFatalDiagnosticFromExpression != null -> nonFatalDiagnosticFromExpression + listOfNotNull(extraDiagnostic)
+                    extraDiagnostic == null -> null
+                    else -> listOf(extraDiagnostic)
+                }
                 return components.buildResolvedQualifierForClass(
                     referencedSymbol,
                     qualifiedAccess.source,
@@ -334,7 +346,7 @@ class FirCallResolver(
                         nameReference.source,
                         qualifiedAccess.explicitReceiver,
                         referencedSymbol,
-                        nonFatalDiagnosticFromExpression,
+                        nonFatalDiagnosticFromExpressionWithExtra,
                         session
                     ),
                     annotations = qualifiedAccess.annotations
@@ -700,6 +712,9 @@ class FirCallResolver(
         expectedCandidates: Collection<Candidate>? = null
     ): FirNamedReference {
         val source = reference.source
+        val operatorToken = runIf(callInfo.origin == FirFunctionCallOrigin.Operator) {
+            OperatorNameConventions.TOKENS_BY_OPERATOR_NAME[name]
+        }
 
         val diagnostic = when {
             expectedCallKind != null -> {
@@ -738,7 +753,7 @@ class FirCallResolver(
                                             singleExpectedCandidate
                                         )
                                     }
-                                    else -> ConeUnresolvedNameError(name)
+                                    else -> ConeUnresolvedNameError(name, operatorToken)
                                 }
                             }
                         }
@@ -754,7 +769,7 @@ class FirCallResolver(
                             explicitReceiver.resolvedType,
                         )
                     reference is FirSuperReference && (reference.superTypeRef.firClassLike(session) as? FirClass)?.isInterface == true -> ConeNoConstructorError
-                    else -> ConeUnresolvedNameError(name)
+                    else -> ConeUnresolvedNameError(name, operatorToken)
                 }
             }
 
@@ -812,7 +827,8 @@ class FirCallResolver(
             createResolvedReferenceWithoutCandidateForLocalVariables &&
             explicitReceiver?.coneTypeSafe<ConeIntegerLiteralType>() == null &&
             coneSymbol is FirVariableSymbol &&
-            (coneSymbol !is FirPropertySymbol || (coneSymbol.fir as FirMemberDeclaration).typeParameters.isEmpty())
+            (coneSymbol !is FirPropertySymbol || (coneSymbol.fir as FirMemberDeclaration).typeParameters.isEmpty()) &&
+            !candidate.doesResolutionResultOverrideOtherToPreserveCompatibility()
         ) {
             return buildResolvedNamedReference {
                 this.source = source

@@ -1,6 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.github.jengelman.gradle.plugins.shadow.transformers.DontIncludeResourceTransformer
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.pill.PillExtension
 
@@ -25,12 +24,12 @@ kotlin {
         optIn.addAll(
             listOf(
                 "kotlin.RequiresOptIn",
-                "org.jetbrains.kotlin.gradle.plugin.mpp.pm20.AdvancedKotlinGradlePluginApi",
                 "org.jetbrains.kotlin.gradle.InternalKotlinGradlePluginApi",
                 "org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi",
                 "org.jetbrains.kotlin.gradle.ExternalKotlinTargetApi",
                 "org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi",
                 "org.jetbrains.kotlin.gradle.DeprecatedTargetPresetApi",
+                "org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi",
             )
         )
         suppressWarnings = true
@@ -61,14 +60,11 @@ dependencies {
         }
     }
 
-    commonCompileOnly(project(":compiler:incremental-compilation-impl"))
+    commonCompileOnly(project(":compiler:cli"))
     commonCompileOnly(project(":daemon-common"))
     commonCompileOnly(project(":kotlin-daemon-client"))
     commonCompileOnly(project(":kotlin-gradle-compiler-types"))
-    commonCompileOnly(project(":kotlin-android-extensions"))
     commonCompileOnly(project(":kotlin-compiler-runner-unshaded"))
-    commonCompileOnly(project(":kotlin-annotation-processing"))
-    commonCompileOnly(project(":kotlin-scripting-compiler"))
     commonCompileOnly(project(":kotlin-gradle-statistics"))
     commonCompileOnly(project(":kotlin-gradle-build-metrics"))
     commonCompileOnly("com.android.tools.build:gradle:4.2.2") {
@@ -90,7 +86,7 @@ dependencies {
         exclude("com.android.tools.build", "aaptcompiler")
         exclude("com.android.tools.build", "aapt2-proto")
     }
-    commonCompileOnly(intellijCore())
+    commonCompileOnly(intellijPlatformUtil())
     commonCompileOnly(commonDependency("org.jetbrains.teamcity:serviceMessages"))
     commonCompileOnly(libs.gradle.enterprise.gradlePlugin)
     commonCompileOnly(commonDependency("com.google.code.gson:gson"))
@@ -100,28 +96,27 @@ dependencies {
     }
     commonCompileOnly(project(":kotlin-tooling-metadata"))
     commonCompileOnly(project(":compiler:build-tools:kotlin-build-statistics"))
-
+    commonCompileOnly(commonDependency("org.jetbrains.intellij.deps:asm-all")) { isTransitive = false }
 
     commonImplementation(project(":kotlin-gradle-plugin-idea"))
     commonImplementation(project(":kotlin-gradle-plugin-idea-proto"))
-    commonImplementation(project(":kotlin-util-klib"))
     commonImplementation(project(":native:kotlin-klib-commonizer-api"))
     commonImplementation(project(":compiler:build-tools:kotlin-build-tools-api"))
+    commonImplementation(project(":compiler:build-tools:kotlin-build-statistics"))
 
-    commonRuntimeOnly(project(":kotlin-compiler-embeddable"))
-    commonRuntimeOnly(project(":kotlin-android-extensions"))
     commonRuntimeOnly(project(":kotlin-compiler-runner")) {
         // Excluding dependency with not-relocated 'com.intellij' types
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-build-common")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-compiler-embeddable")
     }
-    commonRuntimeOnly(project(":kotlin-scripting-compiler-embeddable"))
-    commonRuntimeOnly(project(":kotlin-scripting-compiler-impl-embeddable"))
+    commonRuntimeOnly(project(":kotlin-util-klib"))
+    commonRuntimeOnly(project(":prepare:kotlin-gradle-plugin-compiler-dependencies"))
 
     embedded(project(":kotlin-gradle-build-metrics"))
     embedded(project(":kotlin-gradle-statistics"))
     embedded(commonDependency("org.jetbrains.intellij.deps:asm-all")) { isTransitive = false }
     embedded(commonDependency("com.google.code.gson:gson")) { isTransitive = false }
-    embedded(commonDependency("com.google.guava:guava")) { isTransitive = false }
+    embedded(libs.guava) { isTransitive = false }
     embedded(commonDependency("org.jetbrains.teamcity:serviceMessages")) { isTransitive = false }
     embedded(project(":kotlin-tooling-metadata")) { isTransitive = false }
     embedded("de.undercouch:gradle-download-task:4.1.1")
@@ -144,7 +139,6 @@ dependencies {
 
     testImplementation(commonDependency("org.jetbrains.teamcity:serviceMessages"))
     testImplementation(projectTests(":kotlin-build-common"))
-    testImplementation(project(":kotlin-android-extensions"))
     testImplementation(project(":kotlin-compiler-runner"))
     testImplementation(project(":kotlin-test:kotlin-test-junit"))
     testImplementation(commonDependency("junit:junit"))
@@ -326,7 +320,6 @@ if (!kotlinBuildProperties.isInJpsBuildIdeaSync) {
         implementation("com.android.tools.build:gradle-api:7.4.2")
         compileOnly("com.android.tools:common:30.2.1")
         implementation(gradleKotlinDsl())
-        implementation(project(":kotlin-gradle-plugin-kpm-android"))
         implementation(project(":kotlin-gradle-plugin-tcs-android"))
         implementation(project(":kotlin-tooling-metadata"))
         implementation(project.dependencies.testFixtures(project(":kotlin-gradle-plugin-idea")))

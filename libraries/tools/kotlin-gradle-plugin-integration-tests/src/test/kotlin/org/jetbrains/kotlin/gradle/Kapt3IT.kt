@@ -180,6 +180,36 @@ open class Kapt3IT : Kapt3BaseIT() {
         }
     }
 
+    // TODO: Remove as JDK 21 is supported on Java Toolchains
+    @DisplayName("Kapt is working with JDK 21")
+    @GradleTest
+    @GradleTestVersions(minVersion = TestVersions.Gradle.G_7_3)
+    @EnableOnJdk21
+    fun doTestSimpleWithJdk21(
+        gradleVersion: GradleVersion
+    ) {
+        project(
+            "simple".withPrefix,
+            gradleVersion
+        ) {
+            //language=Groovy
+            buildGradle.appendText(
+                """
+                |
+                |kotlin {
+                |    jvmToolchain(21)
+                |}
+                """.trimMargin()
+            )
+
+            build("assemble") {
+                assertTasksExecuted(":kaptGenerateStubsKotlin", ":kaptKotlin")
+                // Check added because of https://youtrack.jetbrains.com/issue/KT-33056.
+                assertOutputDoesNotContain("javaslang.match.PatternsProcessor")
+            }
+        }
+    }
+
     @DisplayName("KT-48402: Kapt worker classpath is using JRE classes from toolchain")
     @JdkVersions(versions = [JavaVersion.VERSION_16])
     @GradleWithJdkTest
@@ -460,6 +490,37 @@ open class Kapt3IT : Kapt3BaseIT() {
         testICRebuild(gradleVersion) { project ->
             project.buildGradle.modify {
                 "$it\ndependencies { implementation 'org.jetbrains.kotlin:kotlin-reflect:' + kotlin_version }"
+            }
+        }
+    }
+
+    @DisplayName("Should incrementally rebuild on annotation processor arguments change")
+    @GradleTest
+    fun testChangeAPArgumentsICRebuild(gradleVersion: GradleVersion) {
+        project("arguments".withPrefix, gradleVersion) {
+            build("build") {
+                assertKaptSuccessful()
+                assertOutputContains("AP options: {suffix=Customized,")
+                assertFileInProjectExists("build/generated/source/kapt/main/example/TestClassCustomized.java")
+                assertFileExists(kotlinClassesDir().resolve("example/TestClass.class"))
+                assertFileExists(javaClassesDir().resolve("example/TestClassCustomized.class"))
+            }
+
+            buildGradle.modify {
+                it.replace("arg(\"suffix\", \"Customized\")", "arg(\"suffix\", \"Changed\")")
+            }
+            javaSourcesDir().resolve("test.kt").modify {
+                it.replace("TestClassCustomized::class.java", "TestClassChanged::class.java")
+            }
+
+            build("build") {
+                assertKaptSuccessful()
+                assertOutputContains("AP options: {suffix=Changed,")
+                assertFileInProjectExists("build/generated/source/kapt/main/example/TestClassChanged.java")
+                assertFileInProjectNotExists("build/generated/source/kapt/main/example/TestClassCustomized.java")
+                assertFileExists(kotlinClassesDir().resolve("example/TestClass.class"))
+                assertFileExists(javaClassesDir().resolve("example/TestClassChanged.class"))
+                assertFileNotExists(javaClassesDir().resolve("example/TestClassCustomized.class"))
             }
         }
     }

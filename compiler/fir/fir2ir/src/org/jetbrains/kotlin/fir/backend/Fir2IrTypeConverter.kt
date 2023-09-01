@@ -124,7 +124,7 @@ class Fir2IrTypeConverter(
                         ?: lookupTag.toSymbol(session)?.toSymbol(typeOrigin) {
                             typeAnnotations += with(annotationGenerator) { it.toIrAnnotations() }
                         }
-                        ?: (lookupTag as? ConeClassLikeLookupTag)?.let(classifierStorage::getIrClassSymbolForNotFoundClass)
+                        ?: (lookupTag as? ConeClassLikeLookupTag)?.let(classifiersGenerator::createIrClassSymbolForNotFoundClass)
                         ?: return createErrorType()
 
                 when {
@@ -332,10 +332,25 @@ class Fir2IrTypeConverter(
 fun FirTypeRef.toIrType(
     typeConverter: Fir2IrTypeConverter,
     typeOrigin: ConversionTypeOrigin = ConversionTypeOrigin.DEFAULT
-): IrType =
-    with(typeConverter) {
+): IrType {
+    return with(typeConverter) {
         toIrType(typeOrigin)
     }
+}
+
+context(Fir2IrComponents)
+fun FirTypeRef.toIrType(typeOrigin: ConversionTypeOrigin = ConversionTypeOrigin.DEFAULT): IrType {
+    return with(typeConverter) {
+        toIrType(typeOrigin)
+    }
+}
+
+context(Fir2IrComponents)
+fun ConeKotlinType.toIrType(typeOrigin: ConversionTypeOrigin = ConversionTypeOrigin.DEFAULT): IrType {
+    return with(typeConverter) {
+        toIrType(typeOrigin)
+    }
+}
 
 fun ConeKotlinType.toIrType(
     typeConverter: Fir2IrTypeConverter,

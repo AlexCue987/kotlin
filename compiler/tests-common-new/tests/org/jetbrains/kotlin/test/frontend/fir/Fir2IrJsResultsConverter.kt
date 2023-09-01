@@ -10,10 +10,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDescriptor
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.config.languageVersionSettings
+import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.constant.EvaluatedConstTracker
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
@@ -34,6 +31,7 @@ import org.jetbrains.kotlin.ir.backend.js.incrementalDataProvider
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerDesc
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.library.metadata.resolver.KotlinResolvedLibrary
 import org.jetbrains.kotlin.library.unresolvedDependencies
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
@@ -171,6 +169,7 @@ fun ModuleCompilerAnalyzedOutput.convertToJsIr(
             .putIfAbsent(CommonConfigurationKeys.EVALUATED_CONST_TRACKER, EvaluatedConstTracker.create()),
         inlineConstTracker = null,
         allowNonCachedDeclarations = false,
+        useIrFakeOverrideBuilder = module.shouldUseIrFakeOverrideBuilderInConvertToIr()
     )
 
     return convertToIr(
@@ -180,7 +179,8 @@ fun ModuleCompilerAnalyzedOutput.convertToJsIr(
         irBuiltIns,
         JsManglerIr,
         Fir2IrVisibilityConverter.Default,
-        builtIns ?: DefaultBuiltIns.Instance // TODO: consider passing externally,
+        builtIns ?: DefaultBuiltIns.Instance, // TODO: consider passing externally,
+        ::IrTypeSystemContextImpl
     ).also {
         (it.irModuleFragment.descriptor as? FirModuleDescriptor)?.let { it.allDependencyModules = dependencies }
     }

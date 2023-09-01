@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.contracts.description.LogicOperationKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.descriptors.isObject
 import org.jetbrains.kotlin.diagnostics.findChildByType
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.backend.generators.ClassMemberGenerator
@@ -28,6 +29,7 @@ import org.jetbrains.kotlin.fir.expressions.impl.FirElseIfTrueCondition
 import org.jetbrains.kotlin.fir.expressions.impl.FirUnitExpression
 import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.references.*
+import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.fullyExpandedConeType
 import org.jetbrains.kotlin.fir.resolve.isIteratorNext
 import org.jetbrains.kotlin.fir.resolve.toSymbol
@@ -43,15 +45,13 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
-import org.jetbrains.kotlin.ir.symbols.IrSymbolInternals
+import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.IrErrorClassImpl
 import org.jetbrains.kotlin.ir.types.impl.IrErrorTypeImpl
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultConstructor
-import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.isObject
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
@@ -142,7 +142,7 @@ class Fir2IrVisitor(
         val irParentEnumClass = irEnumEntry.parent as? IrClass
         // If the enum entry has its own members, we need to introduce a synthetic class.
         if (correspondingClass != null) {
-            declarationStorage.enterScope(irEnumEntry)
+            declarationStorage.enterScope(irEnumEntry.symbol)
             classifierStorage.putEnumEntryClassInScope(enumEntry, correspondingClass)
             val anonymousObject = (enumEntry.initializer as FirAnonymousObjectExpression).anonymousObject
             converter.processAnonymousObjectHeaders(anonymousObject, correspondingClass)
@@ -160,7 +160,7 @@ class Fir2IrVisitor(
                     )
                 )
             }
-            declarationStorage.leaveScope(irEnumEntry)
+            declarationStorage.leaveScope(irEnumEntry.symbol)
         } else if (initializer is FirAnonymousObjectExpression) {
             // Otherwise, this is a default-ish enum entry, which doesn't need its own synthetic class.
             // During raw FIR building, we put the delegated constructor call inside an anonymous object.
@@ -217,10 +217,14 @@ class Fir2IrVisitor(
     override fun visitScript(script: FirScript, data: Any?): IrElement {
         return declarationStorage.getCachedIrScript(script)!!.also { irScript ->
             irScript.parent = conversionScope.parentFromStack()
-            declarationStorage.enterScope(irScript)
+            declarationStorage.enterScope(irScript.symbol)
 
             irScript.explicitCallParameters = script.parameters.map { parameter ->
-                declarationStorage.createIrVariable(parameter, irScript, givenOrigin = IrDeclarationOrigin.SCRIPT_CALL_PARAMETER)
+                declarationStorage.createAndCacheIrVariable(
+                    parameter,
+                    irScript,
+                    givenOrigin = IrDeclarationOrigin.SCRIPT_CALL_PARAMETER
+                )
             }
 
             // NOTE: index should correspond to one generated in the collectTowerDataElementsForScript
@@ -274,7 +278,7 @@ class Fir2IrVisitor(
                                         irBuiltIns.unitType, IrStatementOrigin.DESTRUCTURING_DECLARATION
                                     ).also {
                                         it.statements.add(
-                                            declarationStorage.createIrVariable(statement, conversionScope.parentFromStack()).also {
+                                            declarationStorage.createAndCacheIrVariable(statement, conversionScope.parentFromStack()).also {
                                                 it.initializer = statement.initializer?.toIrStatement() as? IrExpression
                                             }
                                         )
@@ -318,7 +322,7 @@ class Fir2IrVisitor(
                     irScript.configure(script) { declarationStorage.getCachedIrScript(it.fir)?.symbol }
                 }
             }
-            declarationStorage.leaveScope(irScript)
+            declarationStorage.leaveScope(irScript.symbol)
         }
     }
 
@@ -326,12 +330,12 @@ class Fir2IrVisitor(
         val irClass = classifierStorage.getCachedIrCodeFragment(codeFragment)!!
         val irFunction = irClass.declarations.firstIsInstance<IrSimpleFunction>()
 
-        declarationStorage.enterScope(irFunction)
+        declarationStorage.enterScope(irFunction.symbol)
         conversionScope.withParent(irFunction) {
             val irBlock = codeFragment.block.convertToIrBlock(forceUnitType = false)
             irFunction.body = irFactory.createExpressionBody(irBlock)
         }
-        declarationStorage.leaveScope(irFunction)
+        declarationStorage.leaveScope(irFunction.symbol)
 
         return irFunction
     }
@@ -383,16 +387,16 @@ class Fir2IrVisitor(
         anonymousInitializer: FirAnonymousInitializer,
         data: Any?
     ): IrElement = whileAnalysing(session, anonymousInitializer) {
-        val irAnonymousInitializer = declarationStorage.getCachedIrAnonymousInitializer(anonymousInitializer)!!
-        declarationStorage.enterScope(irAnonymousInitializer)
+        val irAnonymousInitializer = declarationStorage.getOrCreateIrAnonymousInitializer(anonymousInitializer, conversionScope.lastClass()!!)
+        declarationStorage.enterScope(irAnonymousInitializer.symbol)
         irAnonymousInitializer.body = convertToIrBlockBody(anonymousInitializer.body!!)
-        declarationStorage.leaveScope(irAnonymousInitializer)
+        declarationStorage.leaveScope(irAnonymousInitializer.symbol)
         return irAnonymousInitializer
     }
 
     override fun visitSimpleFunction(simpleFunction: FirSimpleFunction, data: Any?): IrElement = whileAnalysing(session, simpleFunction) {
         val irFunction = if (simpleFunction.visibility == Visibilities.Local) {
-            declarationStorage.createIrFunction(
+            declarationStorage.getOrCreateIrFunction(
                 simpleFunction, irParent = conversionScope.parent(), predefinedOrigin = IrDeclarationOrigin.LOCAL_FUNCTION, isLocal = true
             )
         } else {
@@ -414,7 +418,7 @@ class Fir2IrVisitor(
         data: Any?
     ): IrElement = whileAnalysing(session, anonymousFunction) {
         return anonymousFunction.convertWithOffsets { startOffset, endOffset ->
-            val irFunction = declarationStorage.createIrFunction(
+            val irFunction = declarationStorage.getOrCreateIrFunction(
                 anonymousFunction,
                 irParent = conversionScope.parent(),
                 predefinedOrigin = IrDeclarationOrigin.LOCAL_FUNCTION,
@@ -438,7 +442,7 @@ class Fir2IrVisitor(
         assert(variable.isLocal)
         val delegate = variable.delegate
         if (delegate != null) {
-            val irProperty = declarationStorage.createIrLocalDelegatedProperty(variable, conversionScope.parentFromStack())
+            val irProperty = declarationStorage.createAndCacheIrLocalDelegatedProperty(variable, conversionScope.parentFromStack())
             irProperty.delegate.initializer = convertToIrExpression(delegate, isDelegate = true)
             conversionScope.withFunction(irProperty.getter) {
                 memberGenerator.convertFunctionContent(irProperty.getter, variable.getter, null)
@@ -454,7 +458,7 @@ class Fir2IrVisitor(
         val isNextVariable = initializer is FirFunctionCall &&
                 initializer.calleeReference.toResolvedNamedFunctionSymbol()?.callableId?.isIteratorNext() == true &&
                 variable.source?.isChildOfForLoop == true
-        val irVariable = declarationStorage.createIrVariable(
+        val irVariable = declarationStorage.createAndCacheIrVariable(
             variable, conversionScope.parentFromStack(),
             if (isNextVariable) {
                 if (variable.name.isSpecial && variable.name == SpecialNames.DESTRUCT) {
@@ -651,14 +655,20 @@ class Fir2IrVisitor(
     }
 
     // Note that this mimics psi2ir [StatementGenerator#shouldGenerateReceiverAsSingletonReference].
-    private fun shouldGenerateReceiverAsSingletonReference(irClass: IrClass): Boolean {
+    private fun shouldGenerateReceiverAsSingletonReference(irClassSymbol: IrClassSymbol): Boolean {
         val scopeOwner = conversionScope.parent()
-        return irClass.isObject &&
-                scopeOwner != irClass && // For anonymous initializers
-                !((scopeOwner is IrFunction || scopeOwner is IrProperty || scopeOwner is IrField) && (scopeOwner as IrDeclaration).parent == irClass) // Members of object
+        // For anonymous initializers
+        if ((scopeOwner as? IrDeclaration)?.symbol == irClassSymbol) return false
+        // Members of object
+        return when (scopeOwner) {
+            is IrFunction, is IrProperty, is IrField -> {
+                val parent = (scopeOwner as IrDeclaration).parent as? IrDeclaration
+                parent?.symbol != irClassSymbol
+            }
+            else -> true
+        }
     }
 
-    @OptIn(IrSymbolInternals::class)
     override fun visitThisReceiverExpression(
         thisReceiverExpression: FirThisReceiverExpression,
         data: Any?
@@ -671,97 +681,139 @@ class Fir2IrVisitor(
             callGenerator.injectGetValueCall(thisReceiverExpression, calleeReference)?.let { return it }
         }
 
-        when (boundSymbol) {
-            is FirClassSymbol -> {
-                // Object case
-                val firClass = boundSymbol.fir as FirClass
-                val irClass = if (firClass.origin == FirDeclarationOrigin.Source) {
-                    // We anyway can use 'else' branch as fallback, but
-                    // this is an additional check of FIR2IR invariants
-                    // (source classes should be already built when we analyze bodies)
-                    classifierStorage.getCachedIrClass(firClass)!!
-                } else {
-                    classifierStorage.getIrClassSymbol(boundSymbol).owner
-                }
+        val convertedExpression = when (boundSymbol) {
+            is FirClassSymbol -> generateThisReceiverAccessForClass(thisReceiverExpression, boundSymbol)
+            is FirScriptSymbol -> generateThisReceiverAccessForScript(thisReceiverExpression, boundSymbol)
+            is FirCallableSymbol -> generateThisReceiverAccessForCallable(thisReceiverExpression, boundSymbol)
+            else -> null
+        }
 
-                if (shouldGenerateReceiverAsSingletonReference(irClass)) {
-                    return thisReceiverExpression.convertWithOffsets { startOffset, endOffset ->
-                        IrGetObjectValueImpl(startOffset, endOffset, irClass.defaultType, irClass.symbol)
-                    }
-                }
+        if (convertedExpression != null) {
+            convertedExpression
+        } else {
+            visitQualifiedAccessExpression(thisReceiverExpression, data)
+        }
+    }
 
-                val dispatchReceiver = conversionScope.dispatchReceiverParameter(irClass)
-                if (dispatchReceiver != null) {
-                    return thisReceiverExpression.convertWithOffsets { startOffset, endOffset ->
-                        val thisRef = callGenerator.findInjectedValue(calleeReference)?.let {
-                            callGenerator.useInjectedValue(it, calleeReference, startOffset, endOffset)
-                        } ?: IrGetValueImpl(startOffset, endOffset, dispatchReceiver.type, dispatchReceiver.symbol)
-                        if (calleeReference.contextReceiverNumber != -1) {
-                            val constructorForCurrentlyGeneratedDelegatedConstructor =
-                                conversionScope.getConstructorForCurrentlyGeneratedDelegatedConstructor(irClass)
+    private fun generateThisReceiverAccessForClass(
+        thisReceiverExpression: FirThisReceiverExpression,
+        firClassSymbol: FirClassSymbol<*>,
+    ): IrElement? {
+        // Object case
+        val calleeReference = thisReceiverExpression.calleeReference
+        val firClass = firClassSymbol.fir
+        val irClassSymbol = if (firClass.origin.fromSource || firClass.origin.generated) {
+            // We anyway can use 'else' branch as fallback, but
+            // this is an additional check of FIR2IR invariants
+            // (source classes should be already built when we analyze bodies)
+            classifierStorage.getCachedIrClass(firClass)!!.symbol
+        } else {
+            /*
+             * The only case when we can refer to non-source this is resolution to companion object of parent
+             *   class in some constructor scope:
+             *
+             * // MODULE: lib
+             * abstract class Base {
+             *     companion object {
+             *         fun foo(): Int = 1
+             *     }
+             * }
+             *
+             * // MODULE: app(lib)
+             * class Derived(
+             *     val x: Int = foo() // this: Base.Companion
+             * ) : Base()
+             */
+            classifierStorage.getIrClassSymbol(firClassSymbol)
+        }
 
-                            if (constructorForCurrentlyGeneratedDelegatedConstructor != null) {
-                                val constructorParameter =
-                                    constructorForCurrentlyGeneratedDelegatedConstructor.valueParameters[calleeReference.contextReceiverNumber]
-                                IrGetValueImpl(startOffset, endOffset, constructorParameter.type, constructorParameter.symbol)
-                            } else {
-                                val contextReceivers =
-                                    components.classifierStorage.getFieldsWithContextReceiversForClass(irClass, firClass)
-                                require(contextReceivers.size > calleeReference.contextReceiverNumber) {
-                                    "Not defined context receiver #${calleeReference.contextReceiverNumber} for $irClass. " +
-                                            "Context receivers found: $contextReceivers"
-                                }
-
-                                IrGetFieldImpl(
-                                    startOffset, endOffset, contextReceivers[calleeReference.contextReceiverNumber].symbol,
-                                    thisReceiverExpression.resolvedType.toIrType(),
-                                    thisRef,
-                                )
-                            }
-                        } else {
-                            thisRef
-                        }
-                    }
-                }
-            }
-            is FirScriptSymbol -> {
-                val firScript = boundSymbol.fir
-                val irScript = declarationStorage.getCachedIrScript(firScript) ?: error("IrScript for ${firScript.name} not found")
-                val receiverParameter =
-                    irScript.implicitReceiversParameters.find { it.index == calleeReference.contextReceiverNumber } ?: irScript.thisReceiver
-                if (receiverParameter != null) {
-                    return thisReceiverExpression.convertWithOffsets { startOffset, endOffset ->
-                        IrGetValueImpl(startOffset, endOffset, receiverParameter.type, receiverParameter.symbol)
-                    }
-                } else {
-                    error("No script receiver found") // TODO: check if any valid situations possible here
-                }
-            }
-            is FirCallableSymbol -> {
-                val irFunction = when (boundSymbol) {
-                    is FirFunctionSymbol -> declarationStorage.getIrFunctionSymbol(boundSymbol).owner
-                    is FirPropertySymbol -> {
-                        val property = declarationStorage.getIrPropertySymbol(boundSymbol).owner as? IrProperty
-                        property?.let { conversionScope.parentAccessorOfPropertyFromStack(it) }
-                    }
-                    else -> null
-                }
-
-                val receiver = irFunction?.let { function ->
-                    if (calleeReference.contextReceiverNumber != -1)
-                        function.valueParameters[calleeReference.contextReceiverNumber]
-                    else
-                        function.extensionReceiverParameter
-                }
-
-                if (receiver != null) {
-                    return thisReceiverExpression.convertWithOffsets { startOffset, endOffset ->
-                        IrGetValueImpl(startOffset, endOffset, receiver.type, receiver.symbol)
-                    }
-                }
+        if (firClass.classKind.isObject && shouldGenerateReceiverAsSingletonReference(irClassSymbol)) {
+            return thisReceiverExpression.convertWithOffsets { startOffset, endOffset ->
+                val irType = firClassSymbol.defaultType().toIrType()
+                IrGetObjectValueImpl(startOffset, endOffset, irType, irClassSymbol)
             }
         }
-        return visitQualifiedAccessExpression(thisReceiverExpression, data)
+
+        val irClass = conversionScope.findDeclarationInParentsStack<IrClass>(irClassSymbol)
+
+        val dispatchReceiver = conversionScope.dispatchReceiverParameter(irClass) ?: return null
+        return thisReceiverExpression.convertWithOffsets { startOffset, endOffset ->
+            val thisRef = callGenerator.findInjectedValue(calleeReference)?.let {
+                callGenerator.useInjectedValue(it, calleeReference, startOffset, endOffset)
+            } ?: IrGetValueImpl(startOffset, endOffset, dispatchReceiver.type, dispatchReceiver.symbol)
+
+            if (calleeReference.contextReceiverNumber == -1) {
+                return thisRef
+            }
+
+            val constructorForCurrentlyGeneratedDelegatedConstructor =
+                conversionScope.getConstructorForCurrentlyGeneratedDelegatedConstructor(irClass.symbol)
+
+            if (constructorForCurrentlyGeneratedDelegatedConstructor != null) {
+                val constructorParameter =
+                    constructorForCurrentlyGeneratedDelegatedConstructor.valueParameters[calleeReference.contextReceiverNumber]
+                IrGetValueImpl(startOffset, endOffset, constructorParameter.type, constructorParameter.symbol)
+            } else {
+                val contextReceivers =
+                    components.classifierStorage.getFieldsWithContextReceiversForClass(irClass, firClass)
+                require(contextReceivers.size > calleeReference.contextReceiverNumber) {
+                    "Not defined context receiver #${calleeReference.contextReceiverNumber} for $irClass. " +
+                            "Context receivers found: $contextReceivers"
+                }
+
+                IrGetFieldImpl(
+                    startOffset, endOffset, contextReceivers[calleeReference.contextReceiverNumber].symbol,
+                    thisReceiverExpression.resolvedType.toIrType(),
+                    thisRef,
+                )
+            }
+        }
+    }
+
+    private fun generateThisReceiverAccessForScript(
+        thisReceiverExpression: FirThisReceiverExpression,
+        firScriptSymbol: FirScriptSymbol
+    ): IrElement {
+        val calleeReference = thisReceiverExpression.calleeReference
+        val firScript = firScriptSymbol.fir
+        val irScript = declarationStorage.getCachedIrScript(firScript) ?: error("IrScript for ${firScript.name} not found")
+        val receiverParameter =
+            irScript.implicitReceiversParameters.find { it.index == calleeReference.contextReceiverNumber } ?: irScript.thisReceiver
+        if (receiverParameter != null) {
+            return thisReceiverExpression.convertWithOffsets { startOffset, endOffset ->
+                IrGetValueImpl(startOffset, endOffset, receiverParameter.type, receiverParameter.symbol)
+            }
+        } else {
+            error("No script receiver found") // TODO: check if any valid situations possible here
+        }
+    }
+
+    private fun generateThisReceiverAccessForCallable(
+        thisReceiverExpression: FirThisReceiverExpression,
+        firCallableSymbol: FirCallableSymbol<*>
+    ): IrElement? {
+        val calleeReference = thisReceiverExpression.calleeReference
+        val irFunction = when (firCallableSymbol) {
+            is FirFunctionSymbol -> {
+                val functionSymbol = declarationStorage.getIrFunctionSymbol(firCallableSymbol)
+                conversionScope.findDeclarationInParentsStack<IrSimpleFunction>(functionSymbol)
+            }
+            is FirPropertySymbol -> {
+                val property = declarationStorage.getIrPropertySymbol(firCallableSymbol) as? IrPropertySymbol
+                property?.let { conversionScope.parentAccessorOfPropertyFromStack(it) }
+            }
+            else -> null
+        } ?: return null
+
+        val receiver = if (calleeReference.contextReceiverNumber != -1) {
+            irFunction.valueParameters[calleeReference.contextReceiverNumber]
+        } else {
+            irFunction.extensionReceiverParameter
+        } ?: return null
+
+        return thisReceiverExpression.convertWithOffsets { startOffset, endOffset ->
+            IrGetValueImpl(startOffset, endOffset, receiver.type, receiver.symbol)
+        }
     }
 
     override fun visitInaccessibleReceiverExpression(
@@ -1212,7 +1264,7 @@ class Fir2IrVisitor(
         return when {
             subjectVariable != null -> subjectVariable.accept(this, null) as IrVariable
             subjectExpression != null -> {
-                applyParentFromStackTo(declarationStorage.declareTemporaryVariable(convertToIrExpression(subjectExpression), "subject"))
+                applyParentFromStackTo(callablesGenerator.declareTemporaryVariable(convertToIrExpression(subjectExpression), "subject"))
             }
             else -> null
         }
@@ -1371,7 +1423,7 @@ class Fir2IrVisitor(
 
     override fun visitCatch(catch: FirCatch, data: Any?): IrElement {
         return catch.convertWithOffsets { startOffset, endOffset ->
-            val catchParameter = declarationStorage.createIrVariable(
+            val catchParameter = declarationStorage.createAndCacheIrVariable(
                 catch.parameter, conversionScope.parentFromStack(), IrDeclarationOrigin.CATCH_PARAMETER
             )
             IrCatchImpl(startOffset, endOffset, catchParameter, catch.block.convertToIrBlock(forceUnitType = false))

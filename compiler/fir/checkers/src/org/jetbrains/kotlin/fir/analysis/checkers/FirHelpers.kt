@@ -27,12 +27,11 @@ import org.jetbrains.kotlin.fir.expressions.impl.FirEmptyExpressionBlock
 import org.jetbrains.kotlin.fir.references.FirSuperReference
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.resolve.*
+import org.jetbrains.kotlin.fir.resolve.providers.firProvider
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
-import org.jetbrains.kotlin.fir.scopes.FirTypeScope
-import org.jetbrains.kotlin.fir.scopes.getDirectOverriddenFunctions
+import org.jetbrains.kotlin.fir.scopes.*
+import org.jetbrains.kotlin.fir.scopes.impl.declaredMemberScope
 import org.jetbrains.kotlin.fir.scopes.impl.multipleDelegatesWithTheSameSignature
-import org.jetbrains.kotlin.fir.scopes.overriddenFunctions
-import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
@@ -151,6 +150,14 @@ fun FirBasedSymbol<*>.getContainingClassSymbol(session: FirSession): FirClassLik
     is FirClassLikeSymbol<*> -> getContainingClassLookupTag()?.toSymbol(session)
     is FirAnonymousInitializerSymbol -> dispatchReceiverType?.toSymbol(session) as? FirClassLikeSymbol<*>
     else -> null
+}
+
+/**
+ * Returns the containing class or file if the callable is top-level.
+ */
+fun FirCallableSymbol<*>.getContainingSymbol(session: FirSession): FirBasedSymbol<*>? {
+    return getContainingClassSymbol(session)
+        ?: session.firProvider.getFirCallableContainerFile(this)?.symbol
 }
 
 fun FirDeclaration.getContainingClassSymbol(session: FirSession) = symbol.getContainingClassSymbol(session)
@@ -725,6 +732,33 @@ fun FirNamedFunctionSymbol.directOverriddenFunctions(session: FirSession, scopeS
 
 fun FirNamedFunctionSymbol.directOverriddenFunctions(context: CheckerContext) =
     directOverriddenFunctions(context.session, context.sessionHolder.scopeSession)
+
+inline fun <C : MutableCollection<FirNamedFunctionSymbol>> FirNamedFunctionSymbol.collectOverriddenFunctionsWhere(
+    collection: C,
+    context: CheckerContext,
+    crossinline condition: (FirNamedFunctionSymbol) -> Boolean,
+) = collection.apply {
+    processOverriddenFunctions(context) {
+        if (condition(it)) {
+            add(it)
+        }
+    }
+}
+
+inline fun FirNamedFunctionSymbol.processOverriddenFunctions(
+    context: CheckerContext,
+    crossinline action: (FirNamedFunctionSymbol) -> Unit,
+) {
+    val containingClass = getContainingClassSymbol(context.session) as? FirClassSymbol ?: return
+    val firTypeScope = containingClass.unsubstitutedScope(context)
+
+    firTypeScope.processFunctionsByName(callableId.callableName) { }
+
+    firTypeScope.processOverriddenFunctions(this) {
+        action(it)
+        ProcessorAction.NEXT
+    }
+}
 
 val CheckerContext.closestNonLocal get() = containingDeclarations.takeWhile { it.isNonLocal }.lastOrNull()
 

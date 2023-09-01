@@ -17,8 +17,11 @@ import org.jetbrains.kotlin.analysis.test.framework.base.AbstractAnalysisApiBase
 import org.jetbrains.kotlin.analysis.test.framework.services.expressionMarkerProvider
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.jvm.config.JvmClasspathRoot
 import org.jetbrains.kotlin.codegen.BytecodeListingTextCollectingVisitor
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
+import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
@@ -32,6 +35,7 @@ import org.jetbrains.kotlin.test.directives.ConfigurationDirectives
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
 import org.jetbrains.kotlin.test.model.TestModule
+import org.jetbrains.kotlin.test.services.EnvironmentConfigurator
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.assertions
 import org.jetbrains.org.objectweb.asm.ClassReader
@@ -109,7 +113,7 @@ abstract class AbstractCompilerFacilityTest : AbstractAnalysisApiBasedSingleModu
         super.configureTest(builder)
         with(builder) {
             useDirectives(Directives)
-            useConfigurators()
+            useConfigurators(::CompilerFacilityEnvironmentConfigurator)
             defaultDirectives {
                 +ConfigurationDirectives.WITH_STDLIB
                 +JvmEnvironmentConfigurationDirectives.FULL_JDK
@@ -167,6 +171,15 @@ abstract class AbstractCompilerFacilityTest : AbstractAnalysisApiBasedSingleModu
         val CODE_FRAGMENT_IMPORT by stringDirective("Import directive for a code fragment")
         val CODE_FRAGMENT_CLASS_NAME by stringDirective("Short name of a code fragment class")
         val CODE_FRAGMENT_METHOD_NAME by stringDirective("Name of a code fragment facade method")
+        val ATTACH_DUPLICATE_STDLIB by directive("Attach the 'stdlib-jvm-minimal-for-test' library to simulate duplicate stdlib dependency")
+    }
+}
+
+private class CompilerFacilityEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
+    override fun configureCompilerConfiguration(configuration: CompilerConfiguration, module: TestModule) {
+        if (module.directives.contains(AbstractCompilerFacilityTest.Directives.ATTACH_DUPLICATE_STDLIB)) {
+            configuration.add(CLIConfigurationKeys.CONTENT_ROOTS, JvmClasspathRoot(ForTestCompileRuntime.minimalRuntimeJarForTests()))
+        }
     }
 }
 
@@ -199,7 +212,13 @@ private class CollectingIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         assertFalse { ::result.isInitialized }
 
-        val dumpOptions = DumpIrTreeOptions(normalizeNames = true, stableOrder = true)
+        val dumpOptions = DumpIrTreeOptions(
+            normalizeNames = true,
+            stableOrder = true,
+            printModuleName = false,
+            printFilePath = false
+        )
+
         result = moduleFragment.dump(dumpOptions)
     }
 }

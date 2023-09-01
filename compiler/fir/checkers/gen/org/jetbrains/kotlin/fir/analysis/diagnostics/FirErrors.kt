@@ -15,10 +15,12 @@ import org.jetbrains.kotlin.config.LanguageFeature.ForbidExposingTypesInPrimaryC
 import org.jetbrains.kotlin.config.LanguageFeature.ForbidInferringTypeVariablesIntoEmptyIntersection
 import org.jetbrains.kotlin.config.LanguageFeature.ForbidUsingExtensionPropertyTypeParameterInDelegate
 import org.jetbrains.kotlin.config.LanguageFeature.ModifierNonBuiltinSuspendFunError
+import org.jetbrains.kotlin.config.LanguageFeature.ProhibitAllMultipleDefaultsInheritedFromSupertypes
 import org.jetbrains.kotlin.config.LanguageFeature.ProhibitAssigningSingleElementsToVarargsInNamedForm
 import org.jetbrains.kotlin.config.LanguageFeature.ProhibitConfusingSyntaxInWhenBranches
 import org.jetbrains.kotlin.config.LanguageFeature.ProhibitCyclesInAnnotations
 import org.jetbrains.kotlin.config.LanguageFeature.ProhibitImplementingVarByInheritedVal
+import org.jetbrains.kotlin.config.LanguageFeature.ProhibitInlineModifierOnPrimaryConstructorParameters
 import org.jetbrains.kotlin.config.LanguageFeature.ProhibitInvisibleAbstractMethodsInSuperclasses
 import org.jetbrains.kotlin.config.LanguageFeature.ProhibitNonReifiedArraysAsReifiedTypeArguments
 import org.jetbrains.kotlin.config.LanguageFeature.ProhibitScriptTopLevelInnerClasses
@@ -157,7 +159,7 @@ object FirErrors {
 
     // Unresolved
     val INVISIBLE_REFERENCE by error3<PsiElement, FirBasedSymbol<*>, Visibility, ClassId?>(SourceElementPositioningStrategies.REFERENCE_BY_QUALIFIED)
-    val UNRESOLVED_REFERENCE by error1<PsiElement, String>(SourceElementPositioningStrategies.REFERENCED_NAME_BY_QUALIFIED)
+    val UNRESOLVED_REFERENCE by error2<PsiElement, String, String?>(SourceElementPositioningStrategies.REFERENCED_NAME_BY_QUALIFIED)
     val UNRESOLVED_LABEL by error0<PsiElement>(SourceElementPositioningStrategies.LABEL)
     val DESERIALIZATION_ERROR by error0<PsiElement>()
     val ERROR_FROM_JAVA_RESOLUTION by error0<PsiElement>()
@@ -173,6 +175,7 @@ object FirErrors {
     val UNRESOLVED_REFERENCE_WRONG_RECEIVER by error1<PsiElement, Collection<FirBasedSymbol<*>>>()
     val UNRESOLVED_IMPORT by error1<PsiElement, String>(SourceElementPositioningStrategies.IMPORT_LAST_NAME)
     val DUPLICATE_PARAMETER_NAME_IN_FUNCTION_TYPE by error0<KtTypeReference>()
+    val MISSING_DEPENDENCY_CLASS by error1<PsiElement, ConeKotlinType>(SourceElementPositioningStrategies.REFERENCED_NAME_BY_QUALIFIED)
 
     // Call resolution
     val CREATING_AN_INSTANCE_OF_ABSTRACT_CLASS by error0<KtExpression>()
@@ -488,6 +491,10 @@ object FirErrors {
     val DATA_CLASS_OVERRIDE_DEFAULT_VALUES by error2<KtElement, FirCallableSymbol<*>, FirClassSymbol<*>>(SourceElementPositioningStrategies.DATA_MODIFIER)
     val CANNOT_WEAKEN_ACCESS_PRIVILEGE by error3<KtModifierListOwner, Visibility, FirCallableSymbol<*>, Name>(SourceElementPositioningStrategies.VISIBILITY_MODIFIER)
     val CANNOT_CHANGE_ACCESS_PRIVILEGE by error3<KtModifierListOwner, Visibility, FirCallableSymbol<*>, Name>(SourceElementPositioningStrategies.VISIBILITY_MODIFIER)
+    val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES by error1<KtElement, FirValueParameterSymbol>(SourceElementPositioningStrategies.DECLARATION_SIGNATURE_OR_DEFAULT)
+    val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE by error1<KtElement, FirValueParameterSymbol>(SourceElementPositioningStrategies.DECLARATION_NAME)
+    val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_DEPRECATION by deprecationError1<KtElement, FirValueParameterSymbol>(ProhibitAllMultipleDefaultsInheritedFromSupertypes, SourceElementPositioningStrategies.DECLARATION_SIGNATURE_OR_DEFAULT)
+    val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE_DEPRECATION by deprecationError1<KtElement, FirValueParameterSymbol>(ProhibitAllMultipleDefaultsInheritedFromSupertypes, SourceElementPositioningStrategies.DECLARATION_NAME)
     val TYPEALIAS_EXPANDS_TO_ARRAY_OF_NOTHINGS by error1<KtElement, ConeKotlinType>()
     val OVERRIDING_FINAL_MEMBER by error2<KtNamedDeclaration, FirCallableSymbol<*>, Name>(SourceElementPositioningStrategies.OVERRIDE_MODIFIER)
     val RETURN_TYPE_MISMATCH_ON_INHERITANCE by error2<KtClassOrObject, FirCallableSymbol<*>, FirCallableSymbol<*>>(SourceElementPositioningStrategies.DECLARATION_NAME)
@@ -804,12 +811,14 @@ object FirErrors {
     val PRIVATE_CLASS_MEMBER_FROM_INLINE by error2<KtElement, FirBasedSymbol<*>, FirBasedSymbol<*>>(SourceElementPositioningStrategies.REFERENCE_BY_QUALIFIED)
     val SUPER_CALL_FROM_PUBLIC_INLINE by error1<KtElement, FirBasedSymbol<*>>(SourceElementPositioningStrategies.REFERENCE_BY_QUALIFIED)
     val DECLARATION_CANT_BE_INLINED by error0<KtDeclaration>(SourceElementPositioningStrategies.INLINE_FUN_MODIFIER)
+    val DECLARATION_CANT_BE_INLINED_DEPRECATION by deprecationError0<KtDeclaration>(ProhibitInlineModifierOnPrimaryConstructorParameters, SourceElementPositioningStrategies.INLINE_FUN_MODIFIER)
     val OVERRIDE_BY_INLINE by warning0<KtDeclaration>(SourceElementPositioningStrategies.DECLARATION_SIGNATURE)
     val NON_INTERNAL_PUBLISHED_API by error0<KtElement>()
     val INVALID_DEFAULT_FUNCTIONAL_PARAMETER_FOR_INLINE by error1<KtElement, FirValueParameterSymbol>()
     val NOT_SUPPORTED_INLINE_PARAMETER_IN_INLINE_PARAMETER_DEFAULT_VALUE by error1<KtElement, FirValueParameterSymbol>()
     val REIFIED_TYPE_PARAMETER_IN_OVERRIDE by error0<KtElement>(SourceElementPositioningStrategies.REIFIED_MODIFIER)
     val INLINE_PROPERTY_WITH_BACKING_FIELD by error0<KtDeclaration>(SourceElementPositioningStrategies.DECLARATION_SIGNATURE)
+    val INLINE_PROPERTY_WITH_BACKING_FIELD_DEPRECATION by deprecationError0<KtDeclaration>(ProhibitInlineModifierOnPrimaryConstructorParameters, SourceElementPositioningStrategies.DECLARATION_SIGNATURE)
     val ILLEGAL_INLINE_PARAMETER_MODIFIER by error0<KtElement>(SourceElementPositioningStrategies.INLINE_PARAMETER_MODIFIER)
     val INLINE_SUSPEND_FUNCTION_TYPE_UNSUPPORTED by error0<KtParameter>()
     val INEFFICIENT_EQUALS_OVERRIDING_IN_VALUE_CLASS by warning1<KtNamedFunction, ConeKotlinType>(SourceElementPositioningStrategies.DECLARATION_NAME)
@@ -835,6 +844,12 @@ object FirErrors {
 
     // label
     val REDUNDANT_LABEL_WARNING by warning0<KtLabelReferenceExpression>(SourceElementPositioningStrategies.LABEL)
+
+    // Enum.entries resolve deprecations
+    val DEPRECATED_ACCESS_TO_ENUM_ENTRY_COMPANION_PROPERTY by warning0<PsiElement>()
+    val DEPRECATED_ACCESS_TO_ENTRY_PROPERTY_FROM_ENUM by warning0<PsiElement>()
+    val DEPRECATED_ACCESS_TO_ENUM_ENTRY_PROPERTY_AS_REFERENCE by warning0<PsiElement>(SourceElementPositioningStrategies.REFERENCED_NAME_BY_QUALIFIED)
+    val DEPRECATED_DECLARATION_OF_ENUM_ENTRY by warning0<KtEnumEntry>()
 
     init {
         RootDiagnosticRendererFactory.registerFactory(FirErrorsDefaultMessages)

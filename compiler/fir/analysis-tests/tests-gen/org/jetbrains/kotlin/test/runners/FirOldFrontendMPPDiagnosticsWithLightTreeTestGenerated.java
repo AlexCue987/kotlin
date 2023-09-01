@@ -371,9 +371,27 @@ public class FirOldFrontendMPPDiagnosticsWithLightTreeTestGenerated extends Abst
         }
 
         @Test
-        @TestMetadata("changeModalityInOverride.kt")
-        public void testChangeModalityInOverride() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/multiplatform/actualClassifierMustHasTheSameMembersAsNonFinalExpectClassifierChecker/changeModalityInOverride.kt");
+        @TestMetadata("changeModalityFromAbstractToFinalInOverride.kt")
+        public void testChangeModalityFromAbstractToFinalInOverride() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/actualClassifierMustHasTheSameMembersAsNonFinalExpectClassifierChecker/changeModalityFromAbstractToFinalInOverride.kt");
+        }
+
+        @Test
+        @TestMetadata("changeModalityFromAbstractToOpenInOverride.kt")
+        public void testChangeModalityFromAbstractToOpenInOverride() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/actualClassifierMustHasTheSameMembersAsNonFinalExpectClassifierChecker/changeModalityFromAbstractToOpenInOverride.kt");
+        }
+
+        @Test
+        @TestMetadata("changeModalityFromOpenToAbstractInOverride.kt")
+        public void testChangeModalityFromOpenToAbstractInOverride() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/actualClassifierMustHasTheSameMembersAsNonFinalExpectClassifierChecker/changeModalityFromOpenToAbstractInOverride.kt");
+        }
+
+        @Test
+        @TestMetadata("changeModalityFromOpenToFinalInOverride.kt")
+        public void testChangeModalityFromOpenToFinalInOverride() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/actualClassifierMustHasTheSameMembersAsNonFinalExpectClassifierChecker/changeModalityFromOpenToFinalInOverride.kt");
         }
 
         @Test
@@ -1065,6 +1083,12 @@ public class FirOldFrontendMPPDiagnosticsWithLightTreeTestGenerated extends Abst
         public void testKt45796() throws Exception {
             runTest("compiler/testData/diagnostics/tests/multiplatform/exhaustiveness/kt45796.kt");
         }
+
+        @Test
+        @TestMetadata("sealedHierarchyInBambooMppStructure.kt")
+        public void testSealedHierarchyInBambooMppStructure() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/exhaustiveness/sealedHierarchyInBambooMppStructure.kt");
+        }
     }
 
     @Nested
@@ -1279,9 +1303,15 @@ public class FirOldFrontendMPPDiagnosticsWithLightTreeTestGenerated extends Abst
         }
 
         @Test
-        @TestMetadata("morePermissiveVisibilityOnActualViaTypeAlias.kt")
-        public void testMorePermissiveVisibilityOnActualViaTypeAlias() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/multiplatform/headerClass/morePermissiveVisibilityOnActualViaTypeAlias.kt");
+        @TestMetadata("morePermissiveVisibilityOnActualViaTypeAlias_finalMember.kt")
+        public void testMorePermissiveVisibilityOnActualViaTypeAlias_finalMember() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/headerClass/morePermissiveVisibilityOnActualViaTypeAlias_finalMember.kt");
+        }
+
+        @Test
+        @TestMetadata("morePermissiveVisibilityOnActualViaTypeAlias_openMember.kt")
+        public void testMorePermissiveVisibilityOnActualViaTypeAlias_openMember() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/headerClass/morePermissiveVisibilityOnActualViaTypeAlias_openMember.kt");
         }
 
         @Test

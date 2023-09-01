@@ -2486,6 +2486,199 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                             runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/sourceSinkFeedContexts/ThroughLocalVariable.kt");
                         }
                     }
+
+                    @TestMetadata("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes")
+                    @TestDataPath("$PROJECT_ROOT")
+                    @RunWith(JUnit3RunnerWithInners.class)
+                    public static class TargetTypes extends AbstractLightAnalysisModeTest {
+                        private void runTest(String testDataFilePath) throws Exception {
+                            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM_IR, testDataFilePath);
+                        }
+
+                        public void testAllFilesPresentInTargetTypes() throws Exception {
+                            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+                        }
+
+                        @TestMetadata("AnonymousObject.kt")
+                        public void testAnonymousObject() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/AnonymousObject.kt");
+                        }
+
+                        @TestMetadata("DefinitelyNonNullableTypeParameter.kt")
+                        public void testDefinitelyNonNullableTypeParameter() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/DefinitelyNonNullableTypeParameter.kt");
+                        }
+
+                        @TestMetadata("EnclosingClass.kt")
+                        public void testEnclosingClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/EnclosingClass.kt");
+                        }
+
+                        @TestMetadata("EnclosingEnumerationEntryType.kt")
+                        public void testEnclosingEnumerationEntryType() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/EnclosingEnumerationEntryType.kt");
+                        }
+
+                        @TestMetadata("EnclosingEnumerationType.kt")
+                        public void testEnclosingEnumerationType() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/EnclosingEnumerationType.kt");
+                        }
+
+                        @TestMetadata("EnclosingExplicitlyGenericInnerClass.kt")
+                        public void testEnclosingExplicitlyGenericInnerClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/EnclosingExplicitlyGenericInnerClass.kt");
+                        }
+
+                        @TestMetadata("EnclosingGenericClass.kt")
+                        public void testEnclosingGenericClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/EnclosingGenericClass.kt");
+                        }
+
+                        @TestMetadata("EnclosingImplicitlyGenericInnerClass.kt")
+                        public void testEnclosingImplicitlyGenericInnerClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/EnclosingImplicitlyGenericInnerClass.kt");
+                        }
+
+                        @TestMetadata("EnclosingInnerClass.kt")
+                        public void testEnclosingInnerClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/EnclosingInnerClass.kt");
+                        }
+
+                        @TestMetadata("EnumerationType.kt")
+                        public void testEnumerationType() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/EnumerationType.kt");
+                        }
+
+                        @TestMetadata("ExplicitlyGenericInnerClass.kt")
+                        public void testExplicitlyGenericInnerClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/ExplicitlyGenericInnerClass.kt");
+                        }
+
+                        @TestMetadata("FunctionWithParameterToUnit.kt")
+                        public void testFunctionWithParameterToUnit() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/FunctionWithParameterToUnit.kt");
+                        }
+
+                        @TestMetadata("FunctionWithReceiverToUnit.kt")
+                        public void testFunctionWithReceiverToUnit() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/FunctionWithReceiverToUnit.kt");
+                        }
+
+                        @TestMetadata("GenericLocalClass.kt")
+                        public void testGenericLocalClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/GenericLocalClass.kt");
+                        }
+
+                        @TestMetadata("GenericLocalClassWithLeakingTypeParameter.kt")
+                        public void testGenericLocalClassWithLeakingTypeParameter() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/GenericLocalClassWithLeakingTypeParameter.kt");
+                        }
+
+                        @TestMetadata("GenericWithContravariantTypeParameter.kt")
+                        public void testGenericWithContravariantTypeParameter() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/GenericWithContravariantTypeParameter.kt");
+                        }
+
+                        @TestMetadata("GenericWithCovariantTypeParameter.kt")
+                        public void testGenericWithCovariantTypeParameter() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/GenericWithCovariantTypeParameter.kt");
+                        }
+
+                        @TestMetadata("GenericWithInProjectedTypeArgument.kt")
+                        public void testGenericWithInProjectedTypeArgument() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/GenericWithInProjectedTypeArgument.kt");
+                        }
+
+                        @TestMetadata("GenericWithInvariantTypeParameter.kt")
+                        public void testGenericWithInvariantTypeParameter() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/GenericWithInvariantTypeParameter.kt");
+                        }
+
+                        @TestMetadata("GenericWithOutProjectedTypeArgument.kt")
+                        public void testGenericWithOutProjectedTypeArgument() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/GenericWithOutProjectedTypeArgument.kt");
+                        }
+
+                        @TestMetadata("GenericWithStarProjectedTypeArgument.kt")
+                        public void testGenericWithStarProjectedTypeArgument() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/GenericWithStarProjectedTypeArgument.kt");
+                        }
+
+                        @TestMetadata("ImplicitlyGenericInnerClass.kt")
+                        public void testImplicitlyGenericInnerClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/ImplicitlyGenericInnerClass.kt");
+                        }
+
+                        @TestMetadata("InnerClass.kt")
+                        public void testInnerClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/InnerClass.kt");
+                        }
+
+                        @TestMetadata("Int.kt")
+                        public void testInt() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/Int.kt");
+                        }
+
+                        @TestMetadata("IntersectionType.kt")
+                        public void testIntersectionType() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/IntersectionType.kt");
+                        }
+
+                        @TestMetadata("LocalClass.kt")
+                        public void testLocalClass() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/LocalClass.kt");
+                        }
+
+                        @TestMetadata("NothingYieldCase.kt")
+                        public void testNothingYieldCase() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/NothingYieldCase.kt");
+                        }
+
+                        @TestMetadata("NullableNothing.kt")
+                        public void testNullableNothing() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/NullableNothing.kt");
+                        }
+
+                        @TestMetadata("NullableNothingNullLiteralYieldCase.kt")
+                        public void testNullableNothingNullLiteralYieldCase() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/NullableNothingNullLiteralYieldCase.kt");
+                        }
+
+                        @TestMetadata("NullableType.kt")
+                        public void testNullableType() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/NullableType.kt");
+                        }
+
+                        @TestMetadata("NullableTypeParameter.kt")
+                        public void testNullableTypeParameter() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/NullableTypeParameter.kt");
+                        }
+
+                        @TestMetadata("NullaryFunctionToUnit.kt")
+                        public void testNullaryFunctionToUnit() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/NullaryFunctionToUnit.kt");
+                        }
+
+                        @TestMetadata("NullaryFunctionWithReturnValue.kt")
+                        public void testNullaryFunctionWithReturnValue() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/NullaryFunctionWithReturnValue.kt");
+                        }
+
+                        @TestMetadata("String.kt")
+                        public void testString() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/String.kt");
+                        }
+
+                        @TestMetadata("SuspendingFunction.kt")
+                        public void testSuspendingFunction() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/SuspendingFunction.kt");
+                        }
+
+                        @TestMetadata("TypeParameter.kt")
+                        public void testTypeParameter() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/TypeParameter.kt");
+                        }
+                    }
                 }
             }
         }
@@ -2721,6 +2914,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             @TestMetadata("hashSet.kt")
             public void testHashSet() throws Exception {
                 runTest("compiler/testData/codegen/box/builtinStubMethods/extendJavaClasses/hashSet.kt");
+            }
+
+            @TestMetadata("kt61548.kt")
+            public void testKt61548() throws Exception {
+                runTest("compiler/testData/codegen/box/builtinStubMethods/extendJavaClasses/kt61548.kt");
             }
 
             @TestMetadata("mapEntry.kt")
@@ -3061,6 +3259,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         @TestMetadata("referenceToGenericSyntheticProperty.kt")
         public void testReferenceToGenericSyntheticProperty() throws Exception {
             runTest("compiler/testData/codegen/box/callableReference/referenceToGenericSyntheticProperty.kt");
+        }
+
+        @TestMetadata("referenceToTypealiasConstructorInLet.kt")
+        public void testReferenceToTypealiasConstructorInLet() throws Exception {
+            runTest("compiler/testData/codegen/box/callableReference/referenceToTypealiasConstructorInLet.kt");
         }
 
         @TestMetadata("staticMethod.kt")
@@ -19420,6 +19623,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/inlineClasses/noReturnTypeManglingJvmNameGeneric.kt", TransformersFunctions.getReplaceOptionalJvmInlineAnnotationWithReal());
         }
 
+        @TestMetadata("nonImmediateInlineClassUpperBound.kt")
+        public void testNonImmediateInlineClassUpperBound() throws Exception {
+            runTest("compiler/testData/codegen/box/inlineClasses/nonImmediateInlineClassUpperBound.kt");
+        }
+
         @TestMetadata("nullableEqeqNonNull.kt")
         public void testNullableEqeqNonNull() throws Exception {
             runTest("compiler/testData/codegen/box/inlineClasses/nullableEqeqNonNull.kt", TransformersFunctions.getReplaceOptionalJvmInlineAnnotationWithReal());
@@ -28494,6 +28702,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/multiplatform/kt60854.kt");
         }
 
+        @TestMetadata("kt61166.kt")
+        public void testKt61166() throws Exception {
+            runTest("compiler/testData/codegen/box/multiplatform/kt61166.kt");
+        }
+
         @TestMetadata("noArgActualConstructor.kt")
         public void testNoArgActualConstructor() throws Exception {
             runTest("compiler/testData/codegen/box/multiplatform/noArgActualConstructor.kt");
@@ -28926,6 +29139,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                 @TestMetadata("expectActualTypealiasCoercion.kt")
                 public void testExpectActualTypealiasCoercion() throws Exception {
                     runTest("compiler/testData/codegen/box/multiplatform/k2/basic/expectActualTypealiasCoercion.kt");
+                }
+
+                @TestMetadata("expectAndCommonFunctionOverloads.kt")
+                public void testExpectAndCommonFunctionOverloads() throws Exception {
+                    runTest("compiler/testData/codegen/box/multiplatform/k2/basic/expectAndCommonFunctionOverloads.kt");
                 }
 
                 @TestMetadata("expectInterfaceInSupertypes.kt")
@@ -42562,6 +42780,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         @TestMetadata("kt47716.kt")
         public void testKt47716() throws Exception {
             runTest("compiler/testData/codegen/box/unsignedTypes/kt47716.kt");
+        }
+
+        @TestMetadata("kt61418.kt")
+        public void testKt61418() throws Exception {
+            runTest("compiler/testData/codegen/box/unsignedTypes/kt61418.kt");
         }
 
         @TestMetadata("literalEqualsNullableUnsigned.kt")

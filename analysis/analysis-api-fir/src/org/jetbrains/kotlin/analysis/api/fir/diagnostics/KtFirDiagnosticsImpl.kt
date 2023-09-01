@@ -285,6 +285,7 @@ internal class InvisibleReferenceImpl(
 
 internal class UnresolvedReferenceImpl(
     override val reference: String,
+    override val operator: String?,
     firDiagnostic: KtPsiDiagnostic,
     token: KtLifetimeToken,
 ) : KtAbstractFirDiagnostic<PsiElement>(firDiagnostic, token), KtFirDiagnostic.UnresolvedReference
@@ -385,6 +386,12 @@ internal class DuplicateParameterNameInFunctionTypeImpl(
     firDiagnostic: KtPsiDiagnostic,
     token: KtLifetimeToken,
 ) : KtAbstractFirDiagnostic<KtTypeReference>(firDiagnostic, token), KtFirDiagnostic.DuplicateParameterNameInFunctionType
+
+internal class MissingDependencyClassImpl(
+    override val type: KtType,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<PsiElement>(firDiagnostic, token), KtFirDiagnostic.MissingDependencyClass
 
 internal class CreatingAnInstanceOfAbstractClassImpl(
     firDiagnostic: KtPsiDiagnostic,
@@ -2208,6 +2215,42 @@ internal class CannotChangeAccessPrivilegeImpl(
     token: KtLifetimeToken,
 ) : KtAbstractFirDiagnostic<KtModifierListOwner>(firDiagnostic, token), KtFirDiagnostic.CannotChangeAccessPrivilege
 
+internal class MultipleDefaultsInheritedFromSupertypesImpl(
+    override val valueParameter: KtSymbol,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtElement>(firDiagnostic, token), KtFirDiagnostic.MultipleDefaultsInheritedFromSupertypes
+
+internal class MultipleDefaultsInheritedFromSupertypesWhenNoExplicitOverrideImpl(
+    override val valueParameter: KtSymbol,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtElement>(firDiagnostic, token), KtFirDiagnostic.MultipleDefaultsInheritedFromSupertypesWhenNoExplicitOverride
+
+internal class MultipleDefaultsInheritedFromSupertypesDeprecationErrorImpl(
+    override val valueParameter: KtSymbol,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtElement>(firDiagnostic, token), KtFirDiagnostic.MultipleDefaultsInheritedFromSupertypesDeprecationError
+
+internal class MultipleDefaultsInheritedFromSupertypesDeprecationWarningImpl(
+    override val valueParameter: KtSymbol,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtElement>(firDiagnostic, token), KtFirDiagnostic.MultipleDefaultsInheritedFromSupertypesDeprecationWarning
+
+internal class MultipleDefaultsInheritedFromSupertypesWhenNoExplicitOverrideDeprecationErrorImpl(
+    override val valueParameter: KtSymbol,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtElement>(firDiagnostic, token), KtFirDiagnostic.MultipleDefaultsInheritedFromSupertypesWhenNoExplicitOverrideDeprecationError
+
+internal class MultipleDefaultsInheritedFromSupertypesWhenNoExplicitOverrideDeprecationWarningImpl(
+    override val valueParameter: KtSymbol,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtElement>(firDiagnostic, token), KtFirDiagnostic.MultipleDefaultsInheritedFromSupertypesWhenNoExplicitOverrideDeprecationWarning
+
 internal class TypealiasExpandsToArrayOfNothingsImpl(
     override val type: KtType,
     firDiagnostic: KtPsiDiagnostic,
@@ -3826,6 +3869,16 @@ internal class DeclarationCantBeInlinedImpl(
     token: KtLifetimeToken,
 ) : KtAbstractFirDiagnostic<KtDeclaration>(firDiagnostic, token), KtFirDiagnostic.DeclarationCantBeInlined
 
+internal class DeclarationCantBeInlinedDeprecationErrorImpl(
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtDeclaration>(firDiagnostic, token), KtFirDiagnostic.DeclarationCantBeInlinedDeprecationError
+
+internal class DeclarationCantBeInlinedDeprecationWarningImpl(
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtDeclaration>(firDiagnostic, token), KtFirDiagnostic.DeclarationCantBeInlinedDeprecationWarning
+
 internal class OverrideByInlineImpl(
     firDiagnostic: KtPsiDiagnostic,
     token: KtLifetimeToken,
@@ -3857,6 +3910,16 @@ internal class InlinePropertyWithBackingFieldImpl(
     firDiagnostic: KtPsiDiagnostic,
     token: KtLifetimeToken,
 ) : KtAbstractFirDiagnostic<KtDeclaration>(firDiagnostic, token), KtFirDiagnostic.InlinePropertyWithBackingField
+
+internal class InlinePropertyWithBackingFieldDeprecationErrorImpl(
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtDeclaration>(firDiagnostic, token), KtFirDiagnostic.InlinePropertyWithBackingFieldDeprecationError
+
+internal class InlinePropertyWithBackingFieldDeprecationWarningImpl(
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtDeclaration>(firDiagnostic, token), KtFirDiagnostic.InlinePropertyWithBackingFieldDeprecationWarning
 
 internal class IllegalInlineParameterModifierImpl(
     firDiagnostic: KtPsiDiagnostic,
@@ -3964,6 +4027,26 @@ internal class RedundantLabelWarningImpl(
     firDiagnostic: KtPsiDiagnostic,
     token: KtLifetimeToken,
 ) : KtAbstractFirDiagnostic<KtLabelReferenceExpression>(firDiagnostic, token), KtFirDiagnostic.RedundantLabelWarning
+
+internal class DeprecatedAccessToEnumEntryCompanionPropertyImpl(
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<PsiElement>(firDiagnostic, token), KtFirDiagnostic.DeprecatedAccessToEnumEntryCompanionProperty
+
+internal class DeprecatedAccessToEntryPropertyFromEnumImpl(
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<PsiElement>(firDiagnostic, token), KtFirDiagnostic.DeprecatedAccessToEntryPropertyFromEnum
+
+internal class DeprecatedAccessToEnumEntryPropertyAsReferenceImpl(
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<PsiElement>(firDiagnostic, token), KtFirDiagnostic.DeprecatedAccessToEnumEntryPropertyAsReference
+
+internal class DeprecatedDeclarationOfEnumEntryImpl(
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtEnumEntry>(firDiagnostic, token), KtFirDiagnostic.DeprecatedDeclarationOfEnumEntry
 
 internal class ConflictingJvmDeclarationsImpl(
     firDiagnostic: KtPsiDiagnostic,

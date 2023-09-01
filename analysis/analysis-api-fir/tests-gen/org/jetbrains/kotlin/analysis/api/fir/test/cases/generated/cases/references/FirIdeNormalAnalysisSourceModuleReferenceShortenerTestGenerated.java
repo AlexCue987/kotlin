@@ -43,7 +43,7 @@ public class FirIdeNormalAnalysisSourceModuleReferenceShortenerTestGenerated ext
 
     @Test
     public void testAllFilesPresentInReferenceShortener() throws Exception {
-        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("analysis/analysis-api/testData/components/referenceShortener/referenceShortener"), Pattern.compile("^(.+)\\.(kt|kts)$"), null, true);
+        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("analysis/analysis-api/testData/components/referenceShortener/referenceShortener"), Pattern.compile("^(.+)\\.kt$"), null, true);
     }
 
     @Test
@@ -68,12 +68,6 @@ public class FirIdeNormalAnalysisSourceModuleReferenceShortenerTestGenerated ext
     @TestMetadata("anonymousFunction_returnType.kt")
     public void testAnonymousFunction_returnType() throws Exception {
         runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/anonymousFunction_returnType.kt");
-    }
-
-    @Test
-    @TestMetadata("callInsideScriptExpression.kts")
-    public void testCallInsideScriptExpression() throws Exception {
-        runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/callInsideScriptExpression.kts");
     }
 
     @Test
@@ -305,6 +299,12 @@ public class FirIdeNormalAnalysisSourceModuleReferenceShortenerTestGenerated ext
     }
 
     @Test
+    @TestMetadata("memberVsCompanionObjectMemberConflict.kt")
+    public void testMemberVsCompanionObjectMemberConflict() throws Exception {
+        runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/memberVsCompanionObjectMemberConflict.kt");
+    }
+
+    @Test
     @TestMetadata("multipleImport.kt")
     public void testMultipleImport() throws Exception {
         runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/multipleImport.kt");
@@ -443,6 +443,12 @@ public class FirIdeNormalAnalysisSourceModuleReferenceShortenerTestGenerated ext
     }
 
     @Test
+    @TestMetadata("staticMethodFromBaseClassConflict.kt")
+    public void testStaticMethodFromBaseClassConflict() throws Exception {
+        runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/staticMethodFromBaseClassConflict.kt");
+    }
+
+    @Test
     @TestMetadata("superClass.kt")
     public void testSuperClass() throws Exception {
         runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/superClass.kt");
@@ -520,13 +526,19 @@ public class FirIdeNormalAnalysisSourceModuleReferenceShortenerTestGenerated ext
     public class NestedClasses {
         @Test
         public void testAllFilesPresentInNestedClasses() throws Exception {
-            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses"), Pattern.compile("^(.+)\\.(kt|kts)$"), null, true);
+            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses"), Pattern.compile("^(.+)\\.kt$"), null, true);
         }
 
         @Test
-        @TestMetadata("nestedClassFromSupertypes.kt")
-        public void testNestedClassFromSupertypes() throws Exception {
-            runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/nestedClassFromSupertypes.kt");
+        @TestMetadata("nestedClassFromSupertypes1.kt")
+        public void testNestedClassFromSupertypes1() throws Exception {
+            runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/nestedClassFromSupertypes1.kt");
+        }
+
+        @Test
+        @TestMetadata("nestedClassFromSupertypes1_java.kt")
+        public void testNestedClassFromSupertypes1_java() throws Exception {
+            runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/nestedClassFromSupertypes1_java.kt");
         }
 
         @Test
@@ -536,9 +548,21 @@ public class FirIdeNormalAnalysisSourceModuleReferenceShortenerTestGenerated ext
         }
 
         @Test
+        @TestMetadata("nestedClassFromSupertypes2_java.kt")
+        public void testNestedClassFromSupertypes2_java() throws Exception {
+            runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/nestedClassFromSupertypes2_java.kt");
+        }
+
+        @Test
         @TestMetadata("nestedClassFromSupertypes3.kt")
         public void testNestedClassFromSupertypes3() throws Exception {
             runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/nestedClassFromSupertypes3.kt");
+        }
+
+        @Test
+        @TestMetadata("nestedClassFromSupertypes3_java.kt")
+        public void testNestedClassFromSupertypes3_java() throws Exception {
+            runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/nestedClassFromSupertypes3_java.kt");
         }
 
         @Test
@@ -554,9 +578,21 @@ public class FirIdeNormalAnalysisSourceModuleReferenceShortenerTestGenerated ext
         }
 
         @Test
+        @TestMetadata("nestedClassFromSupertypes5_java.kt")
+        public void testNestedClassFromSupertypes5_java() throws Exception {
+            runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/nestedClassFromSupertypes5_java.kt");
+        }
+
+        @Test
         @TestMetadata("nestedClassFromSupertypes6.kt")
         public void testNestedClassFromSupertypes6() throws Exception {
             runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/nestedClassFromSupertypes6.kt");
+        }
+
+        @Test
+        @TestMetadata("nestedClassFromSupertypes6_java.kt")
+        public void testNestedClassFromSupertypes6_java() throws Exception {
+            runTest("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/nestedClassFromSupertypes6_java.kt");
         }
 
         @Nested
@@ -565,7 +601,7 @@ public class FirIdeNormalAnalysisSourceModuleReferenceShortenerTestGenerated ext
         public class ClassHeaderPositions {
             @Test
             public void testAllFilesPresentInClassHeaderPositions() throws Exception {
-                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/classHeaderPositions"), Pattern.compile("^(.+)\\.(kt|kts)$"), null, true);
+                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("analysis/analysis-api/testData/components/referenceShortener/referenceShortener/nestedClasses/classHeaderPositions"), Pattern.compile("^(.+)\\.kt$"), null, true);
             }
 
             @Test

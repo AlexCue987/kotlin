@@ -9,7 +9,6 @@
 #include "GCStatistics.hpp"
 #include "GlobalData.hpp"
 #include "MarkAndSweepUtils.hpp"
-#include "ObjectAlloc.hpp"
 #include "ObjectOps.hpp"
 #include "SameThreadMarkAndSweep.hpp"
 #include "std_support/Memory.hpp"
@@ -20,7 +19,7 @@ gc::GC::ThreadData::ThreadData(GC& gc, mm::ThreadData& threadData) noexcept : im
 
 gc::GC::ThreadData::~ThreadData() = default;
 
-void gc::GC::ThreadData::Publish() noexcept {
+void gc::GC::ThreadData::PublishObjectFactory() noexcept {
 #ifndef CUSTOM_ALLOCATOR
     impl_->extraObjectDataFactoryThreadQueue().Publish();
     impl_->objectFactoryThreadQueue().Publish();
@@ -73,6 +72,8 @@ void gc::GC::ThreadData::OnSuspendForGC() noexcept { }
 
 void gc::GC::ThreadData::safePoint() noexcept {}
 
+void gc::GC::ThreadData::onThreadRegistration() noexcept {}
+
 gc::GC::GC(gcScheduler::GCScheduler& gcScheduler) noexcept : impl_(std_support::make_unique<Impl>(gcScheduler)) {}
 
 gc::GC::~GC() = default;
@@ -87,7 +88,11 @@ size_t gc::GC::GetAllocatedHeapSize(ObjHeader* object) noexcept {
 }
 
 size_t gc::GC::GetTotalHeapObjectsSizeBytes() const noexcept {
-    return allocatedBytes();
+#ifdef CUSTOM_ALLOCATOR
+    return alloc::GetAllocatedBytes();
+#else
+    return alloc::allocatedBytes();
+#endif
 }
 
 void gc::GC::ClearForTests() noexcept {

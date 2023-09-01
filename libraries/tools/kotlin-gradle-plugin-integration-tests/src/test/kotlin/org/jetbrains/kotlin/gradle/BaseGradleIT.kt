@@ -28,10 +28,13 @@ import org.junit.Before
 import org.junit.runner.RunWith
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.collections.HashSet
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.isDirectory
 import kotlin.test.*
 
@@ -42,23 +45,12 @@ abstract class BaseGradleIT {
 
     protected var workingDir = File(".")
 
-    internal open fun defaultBuildOptions(): BuildOptions = BuildOptions(
-        withDaemon = true,
-        enableKpmModelMapping = isKpmModelMappingEnabled
-    )
+    internal open fun defaultBuildOptions(): BuildOptions = BuildOptions(withDaemon = true)
 
     open val defaultGradleVersion: GradleVersionRequired
         get() = GradleVersionRequired.None
 
     val isTeamCityRun = System.getenv("TEAMCITY_VERSION") != null
-
-    /**
-     * `var` makes it configurable per test
-     * `open` makes it configurable per test suite
-     */
-    protected open var isKpmModelMappingEnabled = System
-        .getProperty("kotlin.gradle.kpm.enableModelMapping")
-        .toBoolean()
 
     @Before
     open fun setUp() {
@@ -284,6 +276,7 @@ abstract class BaseGradleIT {
         val useParsableDiagnosticsFormatting: Boolean = true,
         val showDiagnosticsStacktrace: Boolean? = false, // false by default to not clutter the testdata + stacktraces change often
         val stacktraceMode: String? = StacktraceOption.FULL_STACKTRACE_LONG_OPTION,
+        val konanDataDir: Path = Paths.get("build/.konan"),
     ) {
         val safeAndroidGradlePluginVersion: AGPVersion
             get() = androidGradlePluginVersion ?: error("AGP version is expected to be set")
@@ -930,10 +923,6 @@ abstract class BaseGradleIT {
                 add("-Pkotlin.build.report.output=${options.withReports.joinToString { it.name }}")
             }
 
-            if (options.enableKpmModelMapping != null) {
-                add("-Pkotlin.kpm.experimentalModelMapping=${options.enableKpmModelMapping}")
-            }
-
             add("-Pkotlin.daemon.useFallbackStrategy=${options.useDaemonFallbackStrategy}")
 
             add("-Dorg.gradle.unsafe.configuration-cache=${options.configurationCache}")
@@ -956,6 +945,8 @@ abstract class BaseGradleIT {
             if (options.hierarchicalMPPStructureSupport != null || options.enableCompatibilityMetadataVariant != null) {
                 add("-Pkotlin.internal.suppressGradlePluginErrors=PreHMPPFlagsError")
             }
+
+            add("-Pkonan.data.dir=${options.konanDataDir.absolutePathString()}")
 
             // Workaround: override a console type set in the user machine gradle.properties (since Gradle 4.3):
             add("--console=plain")

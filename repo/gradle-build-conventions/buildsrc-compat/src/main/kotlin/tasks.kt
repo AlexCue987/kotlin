@@ -47,7 +47,6 @@ val kotlinGradlePluginAndItsRequired = arrayOf(
     ":kotlin-compiler-runner",
     ":kotlin-daemon-embeddable",
     ":kotlin-daemon-client",
-    ":kotlin-project-model",
     ":kotlin-gradle-plugins-bom",
     ":kotlin-gradle-plugin-api",
     ":kotlin-gradle-plugin-annotations",
@@ -81,6 +80,8 @@ val kotlinGradlePluginAndItsRequired = arrayOf(
     ":kotlin-test-js-runner",
     ":native:kotlin-klib-commonizer-embeddable",
     ":native:kotlin-klib-commonizer-api",
+    ":prepare:kotlin-gradle-plugin-compiler-dependencies",
+    ":compiler:build-tools:kotlin-build-statistics",
     ":compiler:build-tools:kotlin-build-tools-api",
     ":compiler:build-tools:kotlin-build-tools-impl",
 )

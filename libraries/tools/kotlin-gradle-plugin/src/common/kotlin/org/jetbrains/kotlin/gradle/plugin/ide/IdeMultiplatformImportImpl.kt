@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.gradle.idea.proto.toByteArray
 import org.jetbrains.kotlin.gradle.idea.serialize.IdeaKotlinExtrasSerializationExtension
 import org.jetbrains.kotlin.gradle.idea.serialize.IdeaKotlinSerializationContext
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
-import org.jetbrains.kotlin.gradle.kpm.idea.IdeaSerializationContext
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.ide.IdeDependencyResolver.Companion.resolvedBy
 import org.jetbrains.kotlin.gradle.plugin.ide.IdeMultiplatformImport.*
@@ -65,7 +64,16 @@ internal class IdeMultiplatformImportImpl(
      * If 'true' the import is instructed to download all sources.jar eagerly.
      * If 'false' the import is instructed to not download any sources.jar
      */
-    private val ideaGradleDownloadSourcesProperty = extension.project.providers.systemProperty("idea.gradle.download.sources")
+    private val ideaGradleDownloadSourcesProperty =
+        extension.project.providers.systemProperty("idea.gradle.download.sources")
+
+    /**
+     * As of right now (08.2023), IntelliJ does not fully support lazy downloading of sources of knm files.
+     * To prevent user confusion, we do not support the 'idea.gradle.download.sources' by default.
+     * This property is internal and for testing of this component only.
+     */
+    private val ideaGradleDownloadSourcesEnabledProperty =
+        extension.project.providers.gradleProperty("kotlin.mpp.idea.gradle.download.sources.enabled")
 
     @OptIn(Idea222Api::class)
     override fun registerDependencyResolver(
@@ -153,7 +161,10 @@ internal class IdeMultiplatformImportImpl(
         /*
         Skip resolving sources if IDE instructs us to (ideaGradleDownloadSourcesProperty is passed by the IDE, reflecting user settings)
          */
-        if (phase == SourcesAndDocumentationResolution && ideaGradleDownloadSourcesProperty.orNull?.toBoolean() == false) {
+        if (phase == SourcesAndDocumentationResolution &&
+            ideaGradleDownloadSourcesEnabledProperty.orNull?.toBoolean() == true &&
+            ideaGradleDownloadSourcesProperty.orNull?.toBoolean() == false
+        ) {
             return IdeAdditionalArtifactResolver.empty
         }
 
@@ -197,7 +208,7 @@ internal class IdeMultiplatformImportImpl(
     }
 
     private fun createSerializationContext(): IdeaKotlinSerializationContext {
-        return IdeaSerializationContext(
+        return IdeaKotlinSerializationContext(
             logger = extension.project.logger,
             extrasSerializationExtensions = registeredExtrasSerializationExtensions.toList()
         )

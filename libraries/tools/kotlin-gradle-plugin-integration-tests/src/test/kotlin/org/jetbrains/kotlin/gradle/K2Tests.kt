@@ -89,6 +89,18 @@ class CustomK2Tests : KGPBaseTest() {
         }
     }
 
+    @Disabled("disable until kotlin/native dependency is updated to include KT-61461")
+    @GradleTest
+    @DisplayName("Native metadata of intermediate with multiple targets. KT-61461")
+    fun nativeMetadataOfIntermediateWithMultipleTargets(gradleVersion: GradleVersion) {
+        with(project("k2-native-intermediate-multiple-targets", gradleVersion, buildOptions = defaultBuildOptions.copy(languageVersion = "2.0"))) {
+            val taskToExecute = ":compileNativeMainKotlinMetadata"
+            build(taskToExecute) {
+                assertTasksExecuted(taskToExecute)
+            }
+        }
+    }
+
     @Disabled("disable until kotlin/native dependency is updated to include KT-58145")
     @GradleTest
     @DisplayName("Compiling shared native source with FirFakeOverrideGenerator referencing a common entity. KT-58145")
@@ -171,6 +183,21 @@ class CustomK2Tests : KGPBaseTest() {
             val taskToExecute = ":compileCommonMainKotlinMetadata"
             build(taskToExecute) {
                 assertTasksExecuted(taskToExecute)
+            }
+        }
+    }
+
+    @GradleTest
+    @DisplayName("Common metadata compilation (expect actual discrimination). KT-61540")
+    fun kt60438MetadataExpectActualDiscrimination(gradleVersion: GradleVersion) {
+        project(
+            "k2-kt-61540-expect-actual-discrimination", gradleVersion,
+            buildOptions = defaultBuildOptions.copy(languageVersion = "2.0")
+        ) {
+            build("assemble") {
+                assertTasksExecuted(":compileCommonMainKotlinMetadata")
+                assertTasksExecuted(":compileNativeMainKotlinMetadata")
+                assertTasksExecuted(":compileLinuxMainKotlinMetadata")
             }
         }
     }

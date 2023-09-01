@@ -213,9 +213,6 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
             +typeArguments.withTransform()
             +receivers
             +field("source", sourceElementType, nullable = true, withReplace = true)
-        }
-
-        propertyAccessExpression.configure {
             +fieldList("nonFatalDiagnostics", coneDiagnosticType, useMutableOrEmpty = true, withReplace = true)
         }
 
@@ -390,7 +387,7 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
 
         declarationStatus.configure {
             +visibility
-            +modality
+            +modality(nullable = true)
             generateBooleanFields(
                 "expect", "actual", "override", "operator", "infix", "inline", "tailRec",
                 "external", "const", "lateInit", "inner", "companion", "data", "suspend", "static",
@@ -399,6 +396,7 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
         }
 
         resolvedDeclarationStatus.configure {
+            +modality(nullable = false)
             +effectiveVisibility
             shouldBeAnInterface()
         }

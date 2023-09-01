@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.backend.konan
 
-import com.google.common.io.Files
+import com.google.common.base.StandardSystemProperty
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.backend.common.linkage.issues.UserVisibleIrModulesSupport
 import org.jetbrains.kotlin.backend.konan.serialization.KonanUserVisibleIrModulesSupport
@@ -22,6 +22,8 @@ import org.jetbrains.kotlin.konan.util.KonanHomeProvider
 import org.jetbrains.kotlin.konan.util.visibleName
 import org.jetbrains.kotlin.library.metadata.resolver.TopologicalLibraryOrder
 import org.jetbrains.kotlin.util.removeSuffixIfPresent
+import java.nio.file.Files
+import java.nio.file.Paths
 
 enum class IrVerificationMode {
     NONE,
@@ -223,6 +225,8 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
 
     internal val metadataKlib get() = configuration.get(KonanConfigKeys.METADATA_KLIB)!!
 
+    internal val headerKlibPath get() = configuration.get(KonanConfigKeys.HEADER_KLIB)
+
     internal val produceStaticFramework get() = configuration.getBoolean(KonanConfigKeys.STATIC_FRAMEWORK)
 
     internal val purgeUserLibs: Boolean
@@ -294,6 +298,8 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
 
     internal val runtimeNativeLibraries: List<String> = mutableListOf<String>().apply {
         if (debug) add("debug.bc")
+        add("mm.bc")
+        add("common_alloc.bc")
         add("common_gc.bc")
         add("common_gcScheduler.bc")
         when (gcSchedulerType) {
@@ -311,14 +317,12 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
             }
         }
         if (allocationMode == AllocationMode.CUSTOM) {
-            add("experimental_memory_manager_custom.bc")
             when (gc) {
                 GC.STOP_THE_WORLD_MARK_AND_SWEEP -> add("same_thread_ms_gc_custom.bc")
                 GC.NOOP -> add("noop_gc_custom.bc")
                 GC.PARALLEL_MARK_CONCURRENT_SWEEP -> add("concurrent_ms_gc_custom.bc")
             }
         } else {
-            add("experimental_memory_manager.bc")
             when (gc) {
                 GC.STOP_THE_WORLD_MARK_AND_SWEEP -> add("same_thread_ms_gc.bc")
                 GC.NOOP -> add("noop_gc.bc")
@@ -335,10 +339,12 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
         }
         when (allocationMode) {
             AllocationMode.MIMALLOC -> {
-                add("opt_alloc.bc")
+                add("legacy_alloc.bc")
+                add("mimalloc_alloc.bc")
                 add("mimalloc.bc")
             }
             AllocationMode.STD -> {
+                add("legacy_alloc.bc")
                 add("std_alloc.bc")
             }
             AllocationMode.CUSTOM -> {
@@ -547,7 +553,7 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
     internal val saveLlvmIrDirectory: java.io.File by lazy {
         val path = configuration.get(KonanConfigKeys.SAVE_LLVM_IR_DIRECTORY)
         if (path == null) {
-            val tempDir = Files.createTempDir()
+            val tempDir = Files.createTempDirectory(Paths.get(StandardSystemProperty.JAVA_IO_TMPDIR.value()!!), /* prefix= */ null).toFile()
             configuration.report(CompilerMessageSeverity.WARNING,
                     "Temporary directory for LLVM IR is ${tempDir.canonicalPath}")
             tempDir

@@ -38,13 +38,13 @@ public:
 
         void OnSuspendForGC() noexcept;
 
-        void safePoint() noexcept { barriers_.onCheckpoint(); }
+        void safePoint() noexcept { barriers_.onSafePoint(); }
+
+        void onThreadRegistration() noexcept { barriers_.onThreadRegistration(); }
 
         BarriersThreadData& barriers() noexcept { return barriers_; }
 
         bool tryLockRootSet();
-        void beginCooperation();
-        bool cooperative() const;
         void publish();
         bool published() const;
         void clearMarkFlags();
@@ -59,7 +59,6 @@ public:
 
         std::atomic<bool> rootSetLocked_ = false;
         std::atomic<bool> published_ = false;
-        std::atomic<bool> cooperative_ = false;
     };
 
 #ifdef CUSTOM_ALLOCATOR
@@ -68,7 +67,7 @@ public:
 #else
     ConcurrentMarkAndSweep(
             ObjectFactory& objectFactory,
-            mm::ExtraObjectDataFactory& extraObjectDataFactory,
+            alloc::ExtraObjectDataFactory& extraObjectDataFactory,
             gcScheduler::GCScheduler& scheduler,
             bool mutatorsCooperate,
             std::size_t auxGCThreads) noexcept;
@@ -94,7 +93,7 @@ private:
 
 #ifndef CUSTOM_ALLOCATOR
     ObjectFactory& objectFactory_;
-    mm::ExtraObjectDataFactory& extraObjectDataFactory_;
+    alloc::ExtraObjectDataFactory& extraObjectDataFactory_;
 #else
     alloc::Heap heap_;
 #endif

@@ -34,7 +34,6 @@ fun updateCompilerXml() {
         "libraries/tools/kotlin-gradle-plugin-idea",
         "libraries/tools/kotlin-gradle-plugin-idea-for-compatibility-tests",
         "libraries/tools/kotlin-gradle-plugin-integration-tests",
-        "libraries/tools/kotlin-gradle-plugin-kpm-android",
         "libraries/tools/kotlin-gradle-plugin-tcs-android",
         "libraries/tools/kotlin-gradle-plugin-model",
         "libraries/tools/kotlin-gradle-plugin-npm-versions-codegen",
@@ -53,7 +52,6 @@ fun updateCompilerXml() {
         "libraries/tools/kotlin-noarg",
         "libraries/tools/kotlin-osgi-bundle",
         "libraries/tools/kotlin-prepush-hook",
-        "libraries/tools/kotlin-project-model",
         "libraries/tools/kotlin-sam-with-receiver",
         "libraries/tools/kotlin-serialization",
         "libraries/tools/kotlin-serialization-unshaded",
@@ -70,7 +68,6 @@ fun updateCompilerXml() {
         "native/commonizer-api",
         "libraries/examples",
         "libraries/tools/kotlin-gradle-plugin-idea-proto",
-        "libraries/tools/kotlin-project-model-tests-generator",
         "repo/gradle-settings-conventions",
         "plugins/fir-plugin-prototype/plugin-annotations",
     )

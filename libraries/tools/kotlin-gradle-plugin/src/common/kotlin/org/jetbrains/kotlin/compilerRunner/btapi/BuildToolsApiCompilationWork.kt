@@ -27,19 +27,10 @@ import org.jetbrains.kotlin.gradle.plugin.internal.BuildIdService
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskLoggers
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilerExecutionStrategy
 import org.jetbrains.kotlin.gradle.tasks.throwExceptionIfCompilationFailed
-import org.jetbrains.kotlin.incremental.ChangedFiles
 import org.jetbrains.kotlin.incremental.ClasspathChanges
 import org.slf4j.LoggerFactory
 import java.io.File
 
-@OptIn(ExperimentalBuildToolsApi::class)
-private val ChangedFiles.asSourcesChanges: SourcesChanges
-    get() = when (this) {
-        is ChangedFiles.Known -> SourcesChanges.Known(modified, removed)
-        is ChangedFiles.Unknown -> SourcesChanges.Unknown
-    }
-
-@OptIn(ExperimentalBuildToolsApi::class)
 internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiCompilationWork.BuildToolsApiCompilationParameters> {
     internal interface BuildToolsApiCompilationParameters : WorkParameters {
         val buildIdService: Property<BuildIdService>
@@ -114,7 +105,7 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
                 }
                 jvmCompilationConfig.useIncrementalCompilation(
                     icEnv.workingDir,
-                    icEnv.changedFiles.asSourcesChanges,
+                    icEnv.changedFiles,
                     classpathSnapshotsParameters,
                     classpathSnapshotsConfig,
                 )
@@ -142,7 +133,6 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
         }
 }
 
-@OptIn(ExperimentalBuildToolsApi::class)
 internal object SharedApiClassesClassLoaderProvider : ParentClassLoaderProvider {
     override fun getClassLoader() = SharedApiClassesClassLoader()
 

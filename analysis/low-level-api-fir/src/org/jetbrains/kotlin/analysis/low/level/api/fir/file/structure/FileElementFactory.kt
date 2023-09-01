@@ -117,9 +117,7 @@ internal object FileElementFactory {
  *
  * @return The declaration in which a change of the passed receiver parameter can be treated as in-block modification
  */
-@LLFirInternals
-@Suppress("unused") // Used in the IDE plugin
-fun PsiElement.getNonLocalReanalyzableContainingDeclaration(): KtDeclaration? {
+internal fun PsiElement.getNonLocalReanalyzableContainingDeclaration(): KtDeclaration? {
     return when (val declaration = getNonLocalContainingOrThisDeclaration()) {
         is KtNamedFunction -> declaration.takeIf { function ->
             function.isReanalyzableContainer() && isElementInsideBody(declaration = function, child = this)
@@ -163,5 +161,5 @@ private fun KtNamedFunction.isReanalyzableContainer(): Boolean = hasBlockBody() 
 
 private fun KtPropertyAccessor.isReanalyzableContainer(): Boolean = isSetter || hasBlockBody() || property.typeReference != null
 
-private fun KtProperty.isReanalyzableContainer(): Boolean = typeReference != null && (isTopLevel || !hasDelegateExpressionOrInitializer())
+private fun KtProperty.isReanalyzableContainer(): Boolean = typeReference != null && !hasDelegateExpressionOrInitializer()
 

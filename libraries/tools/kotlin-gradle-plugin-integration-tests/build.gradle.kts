@@ -1,8 +1,10 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.jvm.toolchain.internal.NoToolchainAvailableException
 import org.jetbrains.kotlin.pill.PillExtension
 
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization")
     id("jps-compatible")
 }
 
@@ -62,7 +64,6 @@ dependencies {
 
     testImplementation(project(":kotlin-gradle-plugin-model"))
     testImplementation(project(":kotlin-gradle-build-metrics"))
-    testImplementation(project(":kotlin-project-model"))
     testImplementation(project(":kotlin-tooling-metadata"))
     testImplementation(kotlinGradlePluginTest)
     testImplementation(project(":kotlin-gradle-subplugin-example"))
@@ -85,11 +86,12 @@ dependencies {
     testImplementation(kotlinStdlib("jdk8"))
     testImplementation(project(":kotlin-parcelize-compiler"))
     testImplementation(commonDependency("org.jetbrains.intellij.deps", "trove4j"))
-    testImplementation(commonDependency("io.ktor", "ktor-server-test-host"))
-    testImplementation(commonDependency("io.ktor", "ktor-server-core"))
-    testImplementation(commonDependency("io.ktor", "ktor-client-cio"))
-    testImplementation(commonDependency("io.ktor", "ktor-server-netty"))
-    testImplementation(commonDependency("io.ktor", "ktor-client-mock"))
+    testImplementation(commonDependency("org.jetbrains.kotlinx", "kotlinx-serialization-json"))
+    testImplementation(libs.ktor.client.cio)
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.ktor.server.core)
+    testImplementation(libs.ktor.server.netty)
+    testImplementation(libs.ktor.server.test.host)
 
     testImplementation(gradleApi())
     testImplementation(gradleTestKit())
@@ -162,27 +164,6 @@ projectTest(
 ) {
     advanceGradleVersion()
     includeMppAndAndroid(false)
-    includeNative(false)
-}
-
-projectTest(
-    "testKpmModelMapping",
-    shortenTempRootName = shortenTempRootName,
-    jUnitMode = JUnitMode.JUnit5
-) {
-    systemProperty("kotlin.gradle.kpm.enableModelMapping", "true")
-    includeMppAndAndroid(true)
-    includeNative(false)
-}
-
-projectTest(
-    "testAdvanceGradleVersionKpmModelMapping",
-    shortenTempRootName = shortenTempRootName,
-    jUnitMode = JUnitMode.JUnit5
-) {
-    systemProperty("kotlin.gradle.kpm.enableModelMapping", "true")
-    advanceGradleVersion()
-    includeMppAndAndroid(true)
     includeNative(false)
 }
 
@@ -330,6 +311,10 @@ tasks.named<Task>("check") {
 }
 
 tasks.withType<Test> {
+    // Disable KONAN_DATA_DIR env variable for all integration tests
+    // because we are using `konan.data.dir` gradle property instead
+    environment.remove("KONAN_DATA_DIR")
+
     val noTestProperty = project.providers.gradleProperty("noTest")
     onlyIf { !noTestProperty.isPresent }
 
@@ -366,6 +351,12 @@ tasks.withType<Test> {
         systemProperty("jdk11Home", jdk11Provider.get())
         systemProperty("jdk16Home", jdk16Provider.get())
         systemProperty("jdk17Home", jdk17Provider.get())
+        // jdk21Provider.isPresent throws NoToolchainAvailableException, so, we have to check for the exception
+        // Storing jdk21Provider in a field leads to "Configuration cache state could not be cached" error,
+        // since it tries to resolve the toolchain as well.
+        try {
+            systemProperty("jdk21Home", project.getToolchainJdkHomeFor(JdkMajorVersion.JDK_21_0).get())
+        } catch (_: NoToolchainAvailableException) {}
         if (mavenLocalRepo != null) {
             systemProperty("maven.repo.local", mavenLocalRepo)
         }

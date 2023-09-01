@@ -9,7 +9,6 @@
 #include "GC.hpp"
 #include "GCStatistics.hpp"
 #include "MarkAndSweepUtils.hpp"
-#include "ObjectAlloc.hpp"
 #include "ObjectOps.hpp"
 #include "std_support/Memory.hpp"
 
@@ -19,7 +18,7 @@ gc::GC::ThreadData::ThreadData(GC& gc, mm::ThreadData& threadData) noexcept : im
 
 gc::GC::ThreadData::~ThreadData() = default;
 
-void gc::GC::ThreadData::Publish() noexcept {
+void gc::GC::ThreadData::PublishObjectFactory() noexcept {
 #ifndef CUSTOM_ALLOCATOR
     impl_->extraObjectDataFactoryThreadQueue().Publish();
     impl_->objectFactoryThreadQueue().Publish();
@@ -36,19 +35,25 @@ void gc::GC::ThreadData::ClearForTests() noexcept {
 }
 
 ALWAYS_INLINE ObjHeader* gc::GC::ThreadData::CreateObject(const TypeInfo* typeInfo) noexcept {
+    ObjHeader* obj;
 #ifndef CUSTOM_ALLOCATOR
-    return impl_->objectFactoryThreadQueue().CreateObject(typeInfo);
+    obj = impl_->objectFactoryThreadQueue().CreateObject(typeInfo);
 #else
-    return impl_->alloc().CreateObject(typeInfo);
+    obj = impl_->alloc().CreateObject(typeInfo);
 #endif
+    impl().gc().barriers().onAllocation(obj);
+    return obj;
 }
 
 ALWAYS_INLINE ArrayHeader* gc::GC::ThreadData::CreateArray(const TypeInfo* typeInfo, uint32_t elements) noexcept {
+    ArrayHeader* arr;
 #ifndef CUSTOM_ALLOCATOR
-    return impl_->objectFactoryThreadQueue().CreateArray(typeInfo, elements);
+    arr = impl_->objectFactoryThreadQueue().CreateArray(typeInfo, elements);
 #else
-    return impl_->alloc().CreateArray(typeInfo, elements);
+    arr = impl_->alloc().CreateArray(typeInfo, elements);
 #endif
+    impl().gc().barriers().onAllocation(arr->obj());
+    return arr;
 }
 
 ALWAYS_INLINE mm::ExtraObjectData& gc::GC::ThreadData::CreateExtraObjectDataForObject(
@@ -76,6 +81,10 @@ void gc::GC::ThreadData::safePoint() noexcept {
     impl_->gc().safePoint();
 }
 
+void gc::GC::ThreadData::onThreadRegistration() noexcept {
+    impl_->gc().onThreadRegistration();
+}
+
 gc::GC::GC(gcScheduler::GCScheduler& gcScheduler) noexcept : impl_(std_support::make_unique<Impl>(gcScheduler)) {}
 
 gc::GC::~GC() = default;
@@ -90,7 +99,11 @@ size_t gc::GC::GetAllocatedHeapSize(ObjHeader* object) noexcept {
 }
 
 size_t gc::GC::GetTotalHeapObjectsSizeBytes() const noexcept {
-    return allocatedBytes();
+#ifdef CUSTOM_ALLOCATOR
+    return alloc::GetAllocatedBytes();
+#else
+    return alloc::allocatedBytes();
+#endif
 }
 
 void gc::GC::ClearForTests() noexcept {

@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.fir.descriptors.FirModuleDescriptor
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.scopes.getFunctions
-import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
@@ -78,9 +77,7 @@ class IrBuiltInsOverFir(
 
     private fun findFirMemberFunctions(classId: ClassId, name: Name): List<FirNamedFunctionSymbol> {
         val klass = symbolProvider.getClassLikeSymbolByClassId(classId) as FirRegularClassSymbol
-        val scope = klass.unsubstitutedScope(
-            session, components.scopeSession, withForcedTypeCalculator = true, memberRequiredPhase = null
-        )
+        val scope = with(components) { klass.unsubstitutedScope() }
         return scope.getFunctions(name)
     }
 
@@ -469,6 +466,20 @@ class IrBuiltInsOverFir(
             *packageNameSegments,
             mapKey = { with(components) { it.fir.returnTypeRef.toIrType(typeConverter).classifierOrNull } },
             mapValue = { _, irSymbol -> irSymbol }
+        )
+    }
+
+    fun getNonBuiltInFunctionsWithFirCounterpartByExtensionReceiver(
+        name: Name,
+        vararg packageNameSegments: String,
+    ): Map<IrClassifierSymbol, Pair<FirNamedFunctionSymbol, IrSimpleFunctionSymbol>> {
+        return getFunctionsByKey(
+            name,
+            *packageNameSegments,
+            mapKey = { symbol ->
+                with(components) { symbol.fir.receiverParameter?.typeRef?.toIrType(typeConverter)?.classifierOrNull }
+            },
+            mapValue = { firSymbol, irSymbol -> firSymbol to irSymbol }
         )
     }
 

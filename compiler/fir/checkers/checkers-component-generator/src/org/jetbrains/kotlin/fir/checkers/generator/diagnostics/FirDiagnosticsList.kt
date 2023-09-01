@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.diagnostics.WhenMissingCase
 import org.jetbrains.kotlin.fir.FirModuleData
 import org.jetbrains.kotlin.fir.checkers.generator.diagnostics.model.*
 import org.jetbrains.kotlin.fir.declarations.FirFunction
-import org.jetbrains.kotlin.fir.declarations.FirTypeAlias
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
@@ -119,6 +118,7 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
         }
         val UNRESOLVED_REFERENCE by error<PsiElement>(PositioningStrategy.REFERENCED_NAME_BY_QUALIFIED) {
             parameter<String>("reference")
+            parameter<String?>("operator")
         }
         val UNRESOLVED_LABEL by error<PsiElement>(PositioningStrategy.LABEL)
         val DESERIALIZATION_ERROR by error<PsiElement>()
@@ -176,6 +176,10 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
         }
 
         val DUPLICATE_PARAMETER_NAME_IN_FUNCTION_TYPE by error<KtTypeReference>()
+
+        val MISSING_DEPENDENCY_CLASS by error<PsiElement>(PositioningStrategy.REFERENCED_NAME_BY_QUALIFIED) {
+            parameter<ConeKotlinType>("type")
+        }
     }
 
     val CALL_RESOLUTION by object : DiagnosticGroup("Call resolution") {
@@ -880,6 +884,25 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
             parameter<Visibility>("overridingVisibility")
             parameter<FirCallableSymbol<*>>("overridden")
             parameter<Name>("containingClassName")
+        }
+
+        val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES by error<KtElement>(PositioningStrategy.DECLARATION_SIGNATURE_OR_DEFAULT) {
+            parameter<FirValueParameterSymbol>("valueParameter")
+        }
+        val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE by error<KtElement>(PositioningStrategy.DECLARATION_NAME) {
+            parameter<FirValueParameterSymbol>("valueParameter")
+        }
+        val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_DEPRECATION by deprecationError<KtElement>(
+            LanguageFeature.ProhibitAllMultipleDefaultsInheritedFromSupertypes,
+            PositioningStrategy.DECLARATION_SIGNATURE_OR_DEFAULT
+        ) {
+            parameter<FirValueParameterSymbol>("valueParameter")
+        }
+        val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE_DEPRECATION by deprecationError<KtElement>(
+            LanguageFeature.ProhibitAllMultipleDefaultsInheritedFromSupertypes,
+            PositioningStrategy.DECLARATION_NAME
+        ) {
+            parameter<FirValueParameterSymbol>("valueParameter")
         }
 
         val TYPEALIAS_EXPANDS_TO_ARRAY_OF_NOTHINGS by error<KtElement> {
@@ -1600,6 +1623,10 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
         }
 
         val DECLARATION_CANT_BE_INLINED by error<KtDeclaration>(PositioningStrategy.INLINE_FUN_MODIFIER)
+        val DECLARATION_CANT_BE_INLINED_DEPRECATION by deprecationError<KtDeclaration>(
+            LanguageFeature.ProhibitInlineModifierOnPrimaryConstructorParameters,
+            PositioningStrategy.INLINE_FUN_MODIFIER,
+        )
 
         val OVERRIDE_BY_INLINE by warning<KtDeclaration>(PositioningStrategy.DECLARATION_SIGNATURE)
 
@@ -1616,6 +1643,10 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
         val REIFIED_TYPE_PARAMETER_IN_OVERRIDE by error<KtElement>(PositioningStrategy.REIFIED_MODIFIER)
 
         val INLINE_PROPERTY_WITH_BACKING_FIELD by error<KtDeclaration>(PositioningStrategy.DECLARATION_SIGNATURE)
+        val INLINE_PROPERTY_WITH_BACKING_FIELD_DEPRECATION by deprecationError<KtDeclaration>(
+            LanguageFeature.ProhibitInlineModifierOnPrimaryConstructorParameters,
+            PositioningStrategy.DECLARATION_SIGNATURE,
+        )
 
         val ILLEGAL_INLINE_PARAMETER_MODIFIER by error<KtElement>(PositioningStrategy.INLINE_PARAMETER_MODIFIER)
 
@@ -1667,6 +1698,13 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
 
     val LABEL by object : DiagnosticGroup("label") {
         val REDUNDANT_LABEL_WARNING by warning<KtLabelReferenceExpression>(PositioningStrategy.LABEL)
+    }
+
+    val ENUM_ENTRIES_DEPRECATIONS by object : DiagnosticGroup("Enum.entries resolve deprecations") {
+        val DEPRECATED_ACCESS_TO_ENUM_ENTRY_COMPANION_PROPERTY by warning<PsiElement>()
+        val DEPRECATED_ACCESS_TO_ENTRY_PROPERTY_FROM_ENUM by warning<PsiElement>()
+        val DEPRECATED_ACCESS_TO_ENUM_ENTRY_PROPERTY_AS_REFERENCE by warning<PsiElement>(PositioningStrategy.REFERENCED_NAME_BY_QUALIFIED)
+        val DEPRECATED_DECLARATION_OF_ENUM_ENTRY by warning<KtEnumEntry>()
     }
 }
 

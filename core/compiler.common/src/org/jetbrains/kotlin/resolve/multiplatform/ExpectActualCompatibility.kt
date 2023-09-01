@@ -67,7 +67,7 @@ sealed class ExpectActualCompatibility<out D> {
 
         object ClassKind : WeakIncompatible<Nothing>("class kinds are different (class, interface, object, enum, annotation)")
 
-        object ClassModifiers : WeakIncompatible<Nothing>("modifiers are different (companion, inner, inline)")
+        object ClassModifiers : WeakIncompatible<Nothing>("modifiers are different (companion, inner, inline, value)")
 
         object FunInterfaceModifier : WeakIncompatible<Nothing>("actual declaration for fun expect interface is not a functional interface")
 
@@ -94,8 +94,6 @@ sealed class ExpectActualCompatibility<out D> {
         object TypeParameterReified : WeakIncompatible<Nothing>(
             "some type parameter is reified in one declaration and non-reified in the other"
         )
-
-        object Unknown : WeakIncompatible<Nothing>(null)
     }
 
     object Compatible : ExpectActualCompatibility<Nothing>()

@@ -87,18 +87,6 @@ open class KotlinJsPluginWrapper : AbstractKotlinJsPluginWrapper() {
     }
 }
 
-open class KotlinPm20PluginWrapper @Inject constructor(
-    objectFactory: ObjectFactory
-) : AbstractKotlinPm20PluginWrapper(objectFactory) {
-
-    override val pluginVariant: String = PLUGIN_VARIANT_NAME
-
-    override fun apply(project: Project) {
-        project.registerVariantImplementations()
-        super.apply(project)
-    }
-}
-
 open class KotlinPlatformJvmPlugin : KotlinPlatformImplementationPluginBase("jvm") {
     override fun apply(project: Project) {
         project.applyPlugin<KotlinPluginWrapper>()
@@ -134,8 +122,8 @@ open class KotlinPlatformAndroidPlugin : KotlinPlatformImplementationPluginBase(
 
 open class KotlinPlatformCommonPlugin : KotlinPlatformPluginBase("common") {
     override fun apply(project: Project) {
-        warnAboutKotlin12xMppDeprecation(project)
         project.applyPlugin<KotlinCommonPluginWrapper>()
+        warnAboutKotlin12xMppDeprecation(project)
     }
 }
 
@@ -156,4 +144,5 @@ private fun Project.registerVariantImplementations() {
         CompatibilityConventionRegistrarG74.Factory()
     factories[UnameExecutor.UnameExecutorVariantFactory::class] =
         UnameExecutorG74.UnameExecutorVariantFactoryG74()
+    factories[ConfigurationCacheStartParameterAccessor.Factory::class] = ConfigurationCacheStartParameterAccessorG74.Factory()
 }

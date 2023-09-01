@@ -68,6 +68,7 @@ object CommonExpressionCheckers : ExpressionCheckers() {
             FirSpreadOfNullableChecker,
             FirAssignmentOperatorCallChecker,
             FirNamedVarargChecker,
+            FirMissingDependencyClassChecker,
             FirUnderscoredTypeArgumentSyntaxChecker,
             FirContractNotFirstStatementChecker,
             FirProtectedConstructorNotInSuperCallChecker,
@@ -77,6 +78,7 @@ object CommonExpressionCheckers : ExpressionCheckers() {
     override val propertyAccessExpressionCheckers: Set<FirPropertyAccessExpressionChecker>
         get() = setOf(
             FirPropertyAccessTypeArgumentsChecker,
+            FirCustomEnumEntriesMigrationAccessChecker,
         )
 
     override val tryExpressionCheckers: Set<FirTryExpressionChecker>
@@ -160,6 +162,7 @@ object CommonExpressionCheckers : ExpressionCheckers() {
             FirDeprecatedQualifierChecker,
             FirVisibilityQualifierChecker,
             FirInlineBodyResolvedQualifierChecker,
+            FirCustomEnumEntriesMigrationQualifierChecker,
         )
 
     override val equalityOperatorCallCheckers: Set<FirEqualityOperatorCallChecker>
@@ -180,5 +183,6 @@ object CommonExpressionCheckers : ExpressionCheckers() {
     override val callableReferenceAccessCheckers: Set<FirCallableReferenceAccessChecker>
         get() = setOf(
             FirTypeArgumentsOfQualifierOfCallableReferenceChecker,
+            FirCustomEnumEntriesMigrationReferenceChecker,
         )
 }

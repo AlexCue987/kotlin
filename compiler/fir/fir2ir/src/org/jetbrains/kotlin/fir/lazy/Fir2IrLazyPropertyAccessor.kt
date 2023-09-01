@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.lazy
 
 import org.jetbrains.kotlin.fir.backend.*
+import org.jetbrains.kotlin.fir.backend.generators.generateOverriddenAccessorSymbols
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
@@ -77,19 +78,19 @@ class Fir2IrLazyPropertyAccessor(
     override var valueParameters: List<IrValueParameter> by lazyVar(lock) {
         if (!isSetter && contextReceiverParametersCount == 0) emptyList()
         else {
-            declarationStorage.enterScope(this)
+            declarationStorage.enterScope(this.symbol)
 
             buildList {
-                declarationStorage.addContextReceiverParametersTo(
+                callablesGenerator.addContextReceiverParametersTo(
                     fir.contextReceiversForFunctionOrContainingProperty(),
                     this@Fir2IrLazyPropertyAccessor,
-                    this@buildList,
+                    this@buildList
                 )
 
                 if (isSetter) {
                     val valueParameter = firAccessor?.valueParameters?.firstOrNull()
                     add(
-                        declarationStorage.createDefaultSetterParameter(
+                        callablesGenerator.createDefaultSetterParameter(
                             startOffset, endOffset,
                             (valueParameter?.returnTypeRef ?: firParentProperty.returnTypeRef).toIrType(
                                 typeConverter, conversionTypeContext
@@ -103,7 +104,7 @@ class Fir2IrLazyPropertyAccessor(
                     )
                 }
             }.apply {
-                declarationStorage.leaveScope(this@Fir2IrLazyPropertyAccessor)
+                declarationStorage.leaveScope(this@Fir2IrLazyPropertyAccessor.symbol)
             }
         }
     }

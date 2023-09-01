@@ -10,10 +10,7 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
-import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
-import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
-import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.symbols.IrSymbol
+import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.symbols.impl.IrClassPublicSymbolImpl
 import org.jetbrains.kotlin.name.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
@@ -149,9 +146,27 @@ fun IrDeclarationWithName.hasEqualFqName(fqName: FqName): Boolean =
         else -> false
     }
 
+fun IrDeclarationWithName.hasTopLevelEqualFqName(packageName: String, declarationName: String): Boolean =
+    symbol.hasTopLevelEqualFqName(packageName, declarationName) || name.asString() == declarationName && when (val parent = parent) {
+        is IrPackageFragment -> parent.packageFqName.asString() == packageName
+        else -> false
+    }
+
 fun IrSymbol.hasEqualFqName(fqName: FqName): Boolean {
     return this is IrClassPublicSymbolImpl && with(signature as? IdSignature.CommonSignature ?: return false) {
-        FqName("$packageFqName.$declarationFqName") == fqName
+        // optimized version of FqName("$packageFqName.$declarationFqName") == fqName
+        val fqNameAsString = fqName.asString()
+        fqNameAsString.length == packageFqName.length + 1 + declarationFqName.length &&
+                fqNameAsString[packageFqName.length] == '.' &&
+                fqNameAsString.startsWith(packageFqName) &&
+                fqNameAsString.endsWith(declarationFqName)
+    }
+}
+
+private fun IrSymbol.hasTopLevelEqualFqName(packageName: String, declarationName: String): Boolean {
+    return this is IrClassPublicSymbolImpl && with(signature as? IdSignature.CommonSignature ?: return false) {
+        // optimized version of FqName("$packageFqName.$declarationFqName") == fqName
+        packageFqName == packageName && declarationFqName == declarationName
     }
 }
 
@@ -315,8 +330,13 @@ fun IrClass.getPropertySetter(name: String): IrSimpleFunctionSymbol? =
     getPropertyDeclaration(name)?.setter?.symbol
         ?: getSimpleFunction("<set-$name>").also { assert(it?.owner?.correspondingPropertySymbol?.owner?.name?.asString() == name) }
 
+@IrSymbolInternals
 fun IrClassSymbol.getSimpleFunction(name: String): IrSimpleFunctionSymbol? = owner.getSimpleFunction(name)
+
+@IrSymbolInternals
 fun IrClassSymbol.getPropertyGetter(name: String): IrSimpleFunctionSymbol? = owner.getPropertyGetter(name)
+
+@IrSymbolInternals
 fun IrClassSymbol.getPropertySetter(name: String): IrSimpleFunctionSymbol? = owner.getPropertySetter(name)
 
 fun filterOutAnnotations(fqName: FqName, annotations: List<IrConstructorCall>): List<IrConstructorCall> {

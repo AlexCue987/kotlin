@@ -38,10 +38,7 @@ import org.jetbrains.kotlin.cli.jvm.config.ClassicFrontendSpecificJvmConfigurati
 import org.jetbrains.kotlin.cli.jvm.config.configureJdkClasspathRoots
 import org.jetbrains.kotlin.codegen.CompilationException
 import org.jetbrains.kotlin.config.*
-import org.jetbrains.kotlin.incremental.components.EnumWhenTracker
-import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
-import org.jetbrains.kotlin.incremental.components.InlineConstTracker
-import org.jetbrains.kotlin.incremental.components.LookupTracker
+import org.jetbrains.kotlin.incremental.components.*
 import org.jetbrains.kotlin.load.java.JavaClassesTracker
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents
 import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
@@ -142,13 +139,15 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
             val targetDescription = chunk.map { input -> input.getModuleName() + "-" + input.getModuleType() }.let { names ->
                 names.singleOrNull() ?: names.joinToString()
             }
-            if (configuration.getBoolean(CommonConfigurationKeys.USE_FIR) && configuration.getBoolean(CommonConfigurationKeys.USE_LIGHT_TREE)) {
+            if (configuration.getBoolean(CommonConfigurationKeys.USE_FIR) && configuration.getBoolean(CommonConfigurationKeys.USE_LIGHT_TREE))  {
+                if (messageCollector.hasErrors()) return COMPILATION_ERROR
                 val projectEnvironment =
                     createProjectEnvironment(configuration, rootDisposable, EnvironmentConfigFiles.JVM_CONFIG_FILES, messageCollector)
                 if (messageCollector.hasErrors()) return COMPILATION_ERROR
 
                 compileModulesUsingFrontendIrAndLightTree(
-                    projectEnvironment, configuration, messageCollector, buildFile, chunk, targetDescription
+                    projectEnvironment, configuration, messageCollector, buildFile, chunk, targetDescription,
+                    checkSourceFiles = !arguments.allowNoSourceFiles && !arguments.version
                 )
             } else {
                 val environment = createCoreEnvironment(
@@ -222,6 +221,8 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
                 putIfNotNull(CommonConfigurationKeys.INLINE_CONST_TRACKER, services[InlineConstTracker::class.java])
 
                 putIfNotNull(CommonConfigurationKeys.ENUM_WHEN_TRACKER, services[EnumWhenTracker::class.java])
+
+                putIfNotNull(CommonConfigurationKeys.IMPORT_TRACKER, services[ImportTracker::class.java])
 
                 putIfNotNull(
                     JVMConfigurationKeys.INCREMENTAL_COMPILATION_COMPONENTS,

@@ -16,7 +16,6 @@ import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.*
 import org.jetbrains.kotlin.gradle.plugin.sources.awaitPlatformCompilations
 import org.jetbrains.kotlin.gradle.plugin.sources.internal
 import org.jetbrains.kotlin.gradle.targets.metadata.*
@@ -199,17 +198,6 @@ private suspend fun <T> getHostSpecificElements(
     isNativeShared: suspend (T) -> Boolean,
     getKonanTargets: suspend (T) -> Set<KonanTarget>
 ): Set<T> = fragments.filterTo(mutableSetOf()) { isNativeShared(it) && isHostSpecificKonanTargetsSet(getKonanTargets(it)) }
-
-internal suspend fun getHostSpecificFragments(
-    module: GradleKpmModule
-): Set<GradleKpmFragment> = getHostSpecificElements<GradleKpmFragment>(
-    module.fragments,
-    isNativeShared = { it.isNativeShared() },
-    getKonanTargets = {
-        val nativeVariants = module.variantsContainingFragment(it).filterIsInstance<GradleKpmNativeVariantInternal>()
-        nativeVariants.mapTo(mutableSetOf()) { it.konanTarget }
-    }
-)
 
 internal suspend fun getHostSpecificSourceSets(project: Project): Set<KotlinSourceSet> {
     return getHostSpecificElements(

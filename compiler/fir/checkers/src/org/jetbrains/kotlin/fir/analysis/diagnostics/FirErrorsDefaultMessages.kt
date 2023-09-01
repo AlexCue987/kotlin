@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.diagnostics.rendering.LanguageFeatureMessageRenderer
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers.AMBIGUOUS_CALLS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers.CALLEE_NAME
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers.DECLARATION_NAME
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers.FOR_OPTIONAL_OPERATOR
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers.FQ_NAMES_IN_TYPES
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers.FUNCTIONAL_TYPE_KINDS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers.MODULE_DATA
@@ -158,6 +159,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DATA_CLASS_VARARG
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DATA_CLASS_WITHOUT_PARAMETERS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DATA_OBJECT_CUSTOM_EQUALS_OR_HASH_CODE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DECLARATION_CANT_BE_INLINED
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DECLARATION_CANT_BE_INLINED_DEPRECATION
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEFAULT_ARGUMENTS_IN_EXPECT_WITH_ACTUAL_TYPEALIAS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEFAULT_VALUE_NOT_ALLOWED_IN_OVERRIDE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEFINITELY_NON_NULLABLE_AS_REIFIED
@@ -172,7 +174,11 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DELEGATE_USES_EXT
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DELEGATION_IN_INTERFACE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DELEGATION_NOT_TO_INTERFACE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DELEGATION_SUPER_CALL_IN_ENUM_CONSTRUCTOR
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEPRECATED_ACCESS_TO_ENTRY_PROPERTY_FROM_ENUM
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEPRECATED_ACCESS_TO_ENUM_ENTRY_COMPANION_PROPERTY
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEPRECATED_ACCESS_TO_ENUM_ENTRY_PROPERTY_AS_REFERENCE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEPRECATED_BINARY_MOD
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEPRECATED_DECLARATION_OF_ENUM_ENTRY
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEPRECATED_IDENTITY_EQUALS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEPRECATED_MODIFIER
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.DEPRECATED_MODIFIER_CONTAINING_DECLARATION
@@ -314,6 +320,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.INITIALIZER_REQUI
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.INITIALIZER_TYPE_MISMATCH
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.INLINE_CLASS_CONSTRUCTOR_WRONG_PARAMETERS_SIZE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.INLINE_PROPERTY_WITH_BACKING_FIELD
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.INLINE_PROPERTY_WITH_BACKING_FIELD_DEPRECATION
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.INLINE_SUSPEND_FUNCTION_TYPE_UNSUPPORTED
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.INNER_CLASS_CONSTRUCTOR_NO_RECEIVER
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.INNER_CLASS_INSIDE_VALUE_CLASS
@@ -357,6 +364,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MANY_LAMBDA_EXPRE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.METHOD_OF_ANY_IMPLEMENTED_IN_INTERFACE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MISPLACED_TYPE_PARAMETER_CONSTRAINTS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MISSING_CONSTRUCTOR_KEYWORD
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MISSING_DEPENDENCY_CLASS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MISSING_STDLIB_CLASS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MISSING_VAL_ON_ANNOTATION_PARAMETER
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MIXING_FUNCTIONAL_KINDS_IN_SUPERTYPES
@@ -364,6 +372,10 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MIXING_SUSPEND_AN
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MODIFIER_FORM_FOR_NON_BUILT_IN_SUSPEND
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MODIFIER_FORM_FOR_NON_BUILT_IN_SUSPEND_FUN
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MULTIPLE_ARGUMENTS_APPLICABLE_FOR_CONTEXT_RECEIVER
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_DEPRECATION
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE_DEPRECATION
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MULTIPLE_VARARG_PARAMETERS
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MULTI_FIELD_VALUE_CLASS_PRIMARY_CONSTRUCTOR_DEFAULT_PARAMETER
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MUST_BE_INITIALIZED
@@ -736,6 +748,13 @@ object FirErrorsDefaultMessages : BaseDiagnosticRendererFactory() {
             TO_STRING,
             TO_STRING,
         )
+
+        map.put(
+            MISSING_DEPENDENCY_CLASS,
+            "Cannot access class ''{0}''. Check your module classpath for missing or conflicting dependencies.",
+            RENDER_TYPE,
+        )
+
         map.put(ASSIGNMENT_IN_EXPRESSION_CONTEXT, "Only expressions are allowed in this context.")
         map.put(EXPRESSION_EXPECTED, "Only expressions are allowed here.")
 
@@ -769,7 +788,7 @@ object FirErrorsDefaultMessages : BaseDiagnosticRendererFactory() {
             TO_STRING
         )
         map.put(MISSING_CONSTRUCTOR_KEYWORD, "Use the 'constructor' keyword after the modifiers of the primary constructor.")
-        map.put(UNRESOLVED_REFERENCE, "Unresolved reference ''{0}''.", NULLABLE_STRING)
+        map.put(UNRESOLVED_REFERENCE, "Unresolved reference ''{0}''{1}.", NULLABLE_STRING, FOR_OPTIONAL_OPERATOR)
         map.put(UNRESOLVED_IMPORT, "Unresolved reference ''{0}''.", NULLABLE_STRING) // &
         map.put(DUPLICATE_PARAMETER_NAME_IN_FUNCTION_TYPE, "Duplicate parameter name in a function type.")
         map.put(UNRESOLVED_LABEL, "Unresolved label.")
@@ -1470,9 +1489,14 @@ object FirErrorsDefaultMessages : BaseDiagnosticRendererFactory() {
             DECLARATION_CANT_BE_INLINED,
             "'inline' modifier on virtual members is prohibited. Only private or final members can be inlined."
         )
+        map.put(
+            DECLARATION_CANT_BE_INLINED_DEPRECATION,
+            "'inline' modifier on virtual members is prohibited. Only private or final members can be inlined."
+        )
         map.put(OVERRIDE_BY_INLINE, "Override by an inline function.")
         map.put(REIFIED_TYPE_PARAMETER_IN_OVERRIDE, "Override by a function with reified type parameter.")
         map.put(INLINE_PROPERTY_WITH_BACKING_FIELD, "Inline property cannot have a backing field.")
+        map.put(INLINE_PROPERTY_WITH_BACKING_FIELD_DEPRECATION, "Inline property cannot have a backing field.")
 
         // Overrides
         map.put(NOTHING_TO_OVERRIDE, "''{0}'' overrides nothing.", DECLARATION_NAME)
@@ -1482,6 +1506,30 @@ object FirErrorsDefaultMessages : BaseDiagnosticRendererFactory() {
             "''{0}'' has no access to ''{1}'', so it cannot override it.",
             FQ_NAMES_IN_TYPES,
             FQ_NAMES_IN_TYPES
+        )
+
+        val multipleDefaultsMessage = "More than one overridden function declares a default value for ''{0}''."
+        val multipleDefaultsNotAllowed = " As the compiler can not make sure these values agree, this is not allowed."
+        map.put(
+            MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES,
+            multipleDefaultsMessage + multipleDefaultsNotAllowed,
+            SYMBOL
+        )
+        map.put(
+            MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE,
+            multipleDefaultsMessage + multipleDefaultsNotAllowed,
+            SYMBOL
+        )
+        val multipleDefaultsDiscouraged = " As the compiler can not make sure these values agree, this will be prohibited in the Future."
+        map.put(
+            MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_DEPRECATION,
+            multipleDefaultsMessage + multipleDefaultsDiscouraged,
+            SYMBOL
+        )
+        map.put(
+            MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE_DEPRECATION,
+            multipleDefaultsMessage + multipleDefaultsDiscouraged,
+            SYMBOL
         )
 
         map.put(TYPEALIAS_EXPANDS_TO_ARRAY_OF_NOTHINGS, "Type alias expanded to malformed type ''{0}''", RENDER_TYPE)
@@ -2385,6 +2433,24 @@ object FirErrorsDefaultMessages : BaseDiagnosticRendererFactory() {
         map.put(
             REDUNDANT_LABEL_WARNING,
             "Label is redundant, because it cannot be referenced in a 'break', 'continue', or 'return' expression."
+        )
+
+        // Enum entries deprecations
+        map.put(
+            DEPRECATED_ACCESS_TO_ENUM_ENTRY_COMPANION_PROPERTY,
+            "Ambiguous access to the enum companion's property 'entries' is deprecated. Please, add the explicit 'Companion' qualifier to the class name."
+        )
+        map.put(
+            DEPRECATED_ACCESS_TO_ENTRY_PROPERTY_FROM_ENUM,
+            "Ambiguous access to the 'entries' property from within the enum is deprecated. Please add the explicit qualifier to the call."
+        )
+        map.put(
+            DEPRECATED_ACCESS_TO_ENUM_ENTRY_PROPERTY_AS_REFERENCE,
+            "Ambiguous access to the 'entries' property is deprecated. Please specify the type of the referenced expression explicitly."
+        )
+        map.put(
+            DEPRECATED_DECLARATION_OF_ENUM_ENTRY,
+            "Conflicting declarations: the enum entry 'entries' and the property 'Enum.entries' (KT-48872). Please rename the enum entry declaration."
         )
 
         // Extended checkers group

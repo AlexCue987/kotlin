@@ -1,4 +1,7 @@
 // !DIAGNOSTICS: -UNUSED_EXPRESSION
+// IGNORE_DIAGNOSTIC_API
+// IGNORE_REVERSED_RESOLVE
+// ^KT-61491
 
 import kotlin.reflect.KProperty
 
@@ -10,6 +13,15 @@ class Delegate() {
     operator fun setValue(instance: Any, property: KProperty<*>, value: Int) {}
 }
 
+class Delegate2() {
+    operator fun getValue(instance: Any, property: KProperty<*>) : Int = 1
+    operator fun setValue(instance: Any, property: KProperty<*>, value: Int) {}
+}
+
+class DelegateProvider() {
+    operator fun provideDelegate(instance: Any, property: KProperty<*>) = Delegate2()
+}
+
 class PropertyHolder {
     @Deprecated("text")
     val x = 1
@@ -19,6 +31,14 @@ class PropertyHolder {
 
     val valDelegate by <!DEPRECATION!>Delegate()<!>
     var varDelegate by <!DEPRECATION, DEPRECATION!>Delegate()<!>
+
+    // no deprecation caused by access to itself
+    @Deprecated("text")
+    var deprecatedDelegated by Delegate2()
+
+    // no deprecation caused by access to itself
+    @Deprecated("text")
+    val deprecatedDelegated2 by DelegateProvider()
 
     public val test1: String = ""
         @Deprecated("val-getter") get

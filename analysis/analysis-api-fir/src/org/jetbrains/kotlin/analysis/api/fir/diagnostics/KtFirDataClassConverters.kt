@@ -296,6 +296,7 @@ internal val KT_DIAGNOSTIC_CONVERTER = KtDiagnosticConverterBuilder.buildConvert
     add(FirErrors.UNRESOLVED_REFERENCE) { firDiagnostic ->
         UnresolvedReferenceImpl(
             firDiagnostic.a,
+            firDiagnostic.b,
             firDiagnostic as KtPsiDiagnostic,
             token,
         )
@@ -410,6 +411,13 @@ internal val KT_DIAGNOSTIC_CONVERTER = KtDiagnosticConverterBuilder.buildConvert
     }
     add(FirErrors.DUPLICATE_PARAMETER_NAME_IN_FUNCTION_TYPE) { firDiagnostic ->
         DuplicateParameterNameInFunctionTypeImpl(
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.MISSING_DEPENDENCY_CLASS) { firDiagnostic ->
+        MissingDependencyClassImpl(
+            firSymbolBuilder.typeBuilder.buildKtType(firDiagnostic.a),
             firDiagnostic as KtPsiDiagnostic,
             token,
         )
@@ -2587,6 +2595,48 @@ internal val KT_DIAGNOSTIC_CONVERTER = KtDiagnosticConverterBuilder.buildConvert
             token,
         )
     }
+    add(FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES) { firDiagnostic ->
+        MultipleDefaultsInheritedFromSupertypesImpl(
+            firSymbolBuilder.buildSymbol(firDiagnostic.a),
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE) { firDiagnostic ->
+        MultipleDefaultsInheritedFromSupertypesWhenNoExplicitOverrideImpl(
+            firSymbolBuilder.buildSymbol(firDiagnostic.a),
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_DEPRECATION.errorFactory) { firDiagnostic ->
+        MultipleDefaultsInheritedFromSupertypesDeprecationErrorImpl(
+            firSymbolBuilder.buildSymbol(firDiagnostic.a),
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_DEPRECATION.warningFactory) { firDiagnostic ->
+        MultipleDefaultsInheritedFromSupertypesDeprecationWarningImpl(
+            firSymbolBuilder.buildSymbol(firDiagnostic.a),
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE_DEPRECATION.errorFactory) { firDiagnostic ->
+        MultipleDefaultsInheritedFromSupertypesWhenNoExplicitOverrideDeprecationErrorImpl(
+            firSymbolBuilder.buildSymbol(firDiagnostic.a),
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_WHEN_NO_EXPLICIT_OVERRIDE_DEPRECATION.warningFactory) { firDiagnostic ->
+        MultipleDefaultsInheritedFromSupertypesWhenNoExplicitOverrideDeprecationWarningImpl(
+            firSymbolBuilder.buildSymbol(firDiagnostic.a),
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
     add(FirErrors.TYPEALIAS_EXPANDS_TO_ARRAY_OF_NOTHINGS) { firDiagnostic ->
         TypealiasExpandsToArrayOfNothingsImpl(
             firSymbolBuilder.typeBuilder.buildKtType(firDiagnostic.a),
@@ -4544,6 +4594,18 @@ internal val KT_DIAGNOSTIC_CONVERTER = KtDiagnosticConverterBuilder.buildConvert
             token,
         )
     }
+    add(FirErrors.DECLARATION_CANT_BE_INLINED_DEPRECATION.errorFactory) { firDiagnostic ->
+        DeclarationCantBeInlinedDeprecationErrorImpl(
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.DECLARATION_CANT_BE_INLINED_DEPRECATION.warningFactory) { firDiagnostic ->
+        DeclarationCantBeInlinedDeprecationWarningImpl(
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
     add(FirErrors.OVERRIDE_BY_INLINE) { firDiagnostic ->
         OverrideByInlineImpl(
             firDiagnostic as KtPsiDiagnostic,
@@ -4578,6 +4640,18 @@ internal val KT_DIAGNOSTIC_CONVERTER = KtDiagnosticConverterBuilder.buildConvert
     }
     add(FirErrors.INLINE_PROPERTY_WITH_BACKING_FIELD) { firDiagnostic ->
         InlinePropertyWithBackingFieldImpl(
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.INLINE_PROPERTY_WITH_BACKING_FIELD_DEPRECATION.errorFactory) { firDiagnostic ->
+        InlinePropertyWithBackingFieldDeprecationErrorImpl(
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.INLINE_PROPERTY_WITH_BACKING_FIELD_DEPRECATION.warningFactory) { firDiagnostic ->
+        InlinePropertyWithBackingFieldDeprecationWarningImpl(
             firDiagnostic as KtPsiDiagnostic,
             token,
         )
@@ -4707,6 +4781,30 @@ internal val KT_DIAGNOSTIC_CONVERTER = KtDiagnosticConverterBuilder.buildConvert
     }
     add(FirErrors.REDUNDANT_LABEL_WARNING) { firDiagnostic ->
         RedundantLabelWarningImpl(
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.DEPRECATED_ACCESS_TO_ENUM_ENTRY_COMPANION_PROPERTY) { firDiagnostic ->
+        DeprecatedAccessToEnumEntryCompanionPropertyImpl(
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.DEPRECATED_ACCESS_TO_ENTRY_PROPERTY_FROM_ENUM) { firDiagnostic ->
+        DeprecatedAccessToEntryPropertyFromEnumImpl(
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.DEPRECATED_ACCESS_TO_ENUM_ENTRY_PROPERTY_AS_REFERENCE) { firDiagnostic ->
+        DeprecatedAccessToEnumEntryPropertyAsReferenceImpl(
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.DEPRECATED_DECLARATION_OF_ENUM_ENTRY) { firDiagnostic ->
+        DeprecatedDeclarationOfEnumEntryImpl(
             firDiagnostic as KtPsiDiagnostic,
             token,
         )

@@ -13,11 +13,9 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.compilerRunner.CompilerSystemPropertiesService
-import org.jetbrains.kotlin.compilerRunner.GradleCompilerRunner
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.dsl.KotlinTopLevelExtension
 import org.jetbrains.kotlin.gradle.dsl.topLevelExtension
-import org.jetbrains.kotlin.gradle.incremental.IncrementalModuleInfoBuildService
 import org.jetbrains.kotlin.gradle.internal.ClassLoadersCachingBuildService
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.Companion.kotlinPropertiesProvider
@@ -27,7 +25,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.internal
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KOTLIN_BUILD_DIR_NAME
-import org.jetbrains.kotlin.gradle.utils.providerWithLazyConvention
 
 /**
  * Configuration for the base compile task, [org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile].
@@ -42,10 +39,6 @@ internal abstract class AbstractKotlinCompileConfig<TASK : AbstractKotlinCompile
 
     init {
         val compilerSystemPropertiesService = CompilerSystemPropertiesService.registerIfAbsent(project)
-        val incrementalModuleInfoProvider =
-            IncrementalModuleInfoBuildService.registerIfAbsent(project, objectFactory.providerWithLazyConvention {
-                GradleCompilerRunner.buildModulesInfo(project.gradle)
-            })
         val buildFinishedListenerService = BuildFinishedListenerService.registerIfAbsent(project)
         val cachedClassLoadersService = ClassLoadersCachingBuildService.registerIfAbsent(project)
         val buildIdService = BuildIdService.registerIfAbsent(project)
@@ -61,7 +54,6 @@ internal abstract class AbstractKotlinCompileConfig<TASK : AbstractKotlinCompile
 
             task.localStateDirectories.from(task.taskBuildLocalStateDirectory).disallowChanges()
             task.systemPropertiesService.value(compilerSystemPropertiesService).disallowChanges()
-            task.incrementalModuleInfoProvider.value(incrementalModuleInfoProvider).disallowChanges()
 
             propertiesProvider.kotlinDaemonJvmArgs?.let { kotlinDaemonJvmArgs ->
                 task.kotlinDaemonJvmArguments.set(providers.provider {
@@ -119,7 +111,7 @@ internal abstract class AbstractKotlinCompileConfig<TASK : AbstractKotlinCompile
     ) {
         configureTask { task ->
             task.friendPaths.from({ compilationInfo.friendPaths })
-            compilationInfo.tcsOrNull?.compilation?.let { compilation ->
+            compilationInfo.tcs.compilation.let { compilation ->
                 task.friendSourceSets
                     .value(providers.provider { compilation.allAssociatedCompilations.map { it.name } })
                     .disallowChanges()
@@ -135,8 +127,7 @@ internal abstract class AbstractKotlinCompileConfig<TASK : AbstractKotlinCompile
                 providers.provider {
                     compilationInfo.project.plugins.any {
                         it is KotlinPlatformPluginBase ||
-                                it is AbstractKotlinMultiplatformPluginWrapper ||
-                                it is AbstractKotlinPm20PluginWrapper
+                                it is AbstractKotlinMultiplatformPluginWrapper
                     }
                 }
             )
@@ -146,10 +137,10 @@ internal abstract class AbstractKotlinCompileConfig<TASK : AbstractKotlinCompile
                     project.providers.provider {
                         // Plugin explicitly does not configures 'explicitApi' mode for test sources
                         // compilation, as test sources are not published
-                        val compilation = compilationInfo.tcsOrNull?.compilation
-                        val isCommonCompilation = compilation?.target is KotlinMetadataTarget
+                        val compilation = compilationInfo.tcs.compilation
+                        val isCommonCompilation = compilation.target is KotlinMetadataTarget
 
-                        val androidCompilation = compilationInfo.tcsOrNull?.compilation as? KotlinJvmAndroidCompilation
+                        val androidCompilation = compilationInfo.tcs.compilation as? KotlinJvmAndroidCompilation
                         val isMainAndroidCompilation = androidCompilation?.let {
                             getTestedVariantData(it.androidVariant) == null
                         } ?: false
