@@ -12132,7 +12132,7 @@ public fun CharArray.toMutableSet(): MutableSet<Char> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfGeneric
+ * @sample samples.collections.Collections.BinaryOperations.unionOfGeneric
  */
 public infix fun <T> Array<out T>.union(other: Iterable<T>): Set<T> {
     val set = this.toMutableSet()
@@ -12149,7 +12149,7 @@ public infix fun <T> Array<out T>.union(other: Iterable<T>): Set<T> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfByte
+ * @sample samples.collections.Collections.BinaryOperations.unionOfByte
  */
 public infix fun ByteArray.union(other: Iterable<Byte>): Set<Byte> {
     val set = this.toMutableSet()
@@ -12166,7 +12166,7 @@ public infix fun ByteArray.union(other: Iterable<Byte>): Set<Byte> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfShort
+ * @sample samples.collections.Collections.BinaryOperations.unionOfShort
  */
 public infix fun ShortArray.union(other: Iterable<Short>): Set<Short> {
     val set = this.toMutableSet()
@@ -12183,7 +12183,7 @@ public infix fun ShortArray.union(other: Iterable<Short>): Set<Short> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfInt
+ * @sample samples.collections.Collections.BinaryOperations.unionOfInt
  */
 public infix fun IntArray.union(other: Iterable<Int>): Set<Int> {
     val set = this.toMutableSet()
@@ -12200,7 +12200,7 @@ public infix fun IntArray.union(other: Iterable<Int>): Set<Int> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfLong
+ * @sample samples.collections.Collections.BinaryOperations.unionOfLong
  */
 public infix fun LongArray.union(other: Iterable<Long>): Set<Long> {
     val set = this.toMutableSet()
@@ -12217,7 +12217,7 @@ public infix fun LongArray.union(other: Iterable<Long>): Set<Long> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfFloat
+ * @sample samples.collections.Collections.BinaryOperations.unionOfFloat
  */
 public infix fun FloatArray.union(other: Iterable<Float>): Set<Float> {
     val set = this.toMutableSet()
@@ -12234,7 +12234,7 @@ public infix fun FloatArray.union(other: Iterable<Float>): Set<Float> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfDouble
+ * @sample samples.collections.Collections.BinaryOperations.unionOfDouble
  */
 public infix fun DoubleArray.union(other: Iterable<Double>): Set<Double> {
     val set = this.toMutableSet()
@@ -12251,7 +12251,7 @@ public infix fun DoubleArray.union(other: Iterable<Double>): Set<Double> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfBoolean
+ * @sample samples.collections.Collections.BinaryOperations.unionOfBoolean
  */
 public infix fun BooleanArray.union(other: Iterable<Boolean>): Set<Boolean> {
     val set = this.toMutableSet()
@@ -12268,7 +12268,7 @@ public infix fun BooleanArray.union(other: Iterable<Boolean>): Set<Boolean> {
  * 
  * To get a set containing all elements that are contained in both collections use [intersect].
  * 
- * @sample samples.collections.Collections.Combining.unionOfChar
+ * @sample samples.collections.Collections.BinaryOperations.unionOfChar
  */
 public infix fun CharArray.union(other: Iterable<Char>): Set<Char> {
     val set = this.toMutableSet()
