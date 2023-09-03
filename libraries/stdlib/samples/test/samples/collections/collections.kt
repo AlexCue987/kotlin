@@ -1034,14 +1034,18 @@ class Collections {
 
     }
 
-    class Combining {
+    class BinaryOperations {
 
         @Sample
         fun unionOfGeneric() {
-            val union = listOf("Apple", "Banana", "Orange", "Apple").union(
+            val unionOfArrayAndIterable = arrayOf("Apple", "Banana", "Orange", "Apple").union(
                 listOf("Orange", "Lime")
             )
-            assertPrints(union, "[Apple, Banana, Orange, Lime]")
+            assertPrints(unionOfArrayAndIterable, "[Apple, Banana, Orange, Lime]")
+            val unionOfTwoIterables = listOf("Apple", "Banana", "Orange", "Apple").union(
+                listOf("Orange", "Lime")
+            )
+            assertPrints(unionOfTwoIterables, "[Apple, Banana, Orange, Lime]")
         }
 
         @Sample
