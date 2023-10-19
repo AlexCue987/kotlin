@@ -61,6 +61,7 @@ private class ArrayAsCollection<T>(val values: Array<out T>, val isVarargs: Bool
     override fun contains(element: T): Boolean = values.contains(element)
     override fun containsAll(elements: Collection<T>): Boolean = elements.all { contains(it) }
     override fun iterator(): Iterator<T> = values.iterator()
+
     // override hidden toArray implementation to prevent copying of values array
     public fun toArray(): Array<out Any?> = values.copyToArrayOfAny(isVarargs)
 }
@@ -290,7 +291,8 @@ public inline fun <C, R> C.ifEmpty(defaultValue: () -> R): R where C : Collectio
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER") // false warning, extension takes precedence in some cases
 @kotlin.internal.InlineOnly
-public inline fun <@kotlin.internal.OnlyInputTypes T> Collection<T>.containsAll(elements: Collection<T>): Boolean = this.containsAll(elements)
+public inline fun <@kotlin.internal.OnlyInputTypes T> Collection<T>.containsAll(elements: Collection<T>): Boolean =
+    this.containsAll(elements)
 
 
 /**
@@ -400,7 +402,7 @@ public inline fun <T, K : Comparable<K>> List<T>.binarySearchBy(
     key: K?,
     fromIndex: Int = 0,
     toIndex: Int = size,
-    crossinline selector: (T) -> K?
+    crossinline selector: (T) -> K?,
 ): Int =
     binarySearch(fromIndex, toIndex) { compareValues(selector(it), key) }
 
@@ -473,11 +475,15 @@ internal expect fun checkCountOverflow(count: Int): Int
 
 @PublishedApi
 @SinceKotlin("1.3")
-internal fun throwIndexOverflow() { throw ArithmeticException("Index overflow has happened.") }
+internal fun throwIndexOverflow() {
+    throw ArithmeticException("Index overflow has happened.")
+}
 
 @PublishedApi
 @SinceKotlin("1.3")
-internal fun throwCountOverflow() { throw ArithmeticException("Count overflow has happened.") }
+internal fun throwCountOverflow() {
+    throw ArithmeticException("Count overflow has happened.")
+}
 
 
 internal fun collectionToArrayCommonImpl(collection: Collection<*>): Array<Any?> {
@@ -519,3 +525,43 @@ internal fun <T> collectionToArrayCommonImpl(collection: Collection<*>, array: A
  * Returns the given [array].
  */
 internal expect fun <T> terminateCollectionToArray(collectionSize: Int, array: Array<T>): Array<T>
+
+/**
+ * Returns a list containing all possible pairs with left field from the first collection,
+ * and the right field from the second collection.
+ *
+ * The returned set preserves the element iteration order of both original collections.
+ * It begins with all the pairs with the first element of left collection,
+ * combined with all the elements of the right one in the order of the right collection.
+ *
+ * @sample samples.collections.Collections.BinaryOperations.crossJoinToPairs
+ */
+public infix fun <T, U> Collection<T>.crossJoin(other: Collection<U>) =
+    crossJoin(this, other) { left: T, right: U ->
+        Pair(left, right)
+    }
+
+/**
+ * Returns a list containing all possible pairs with left field from the first collection,
+ * and the right field from the second collection,
+ * applying the provided transformation against those pairs.
+ *
+ * The returned set preserves the element iteration order of both original collections.
+ * It begins with all the pairs with the first element of left collection,
+ * combined with all the elements of the right one in the order of the right collection.
+ *
+ * @sample samples.collections.Collections.BinaryOperations.crossJoinWithTransformation
+ */
+fun <T, U, V> crossJoin(
+    left: Collection<T>,
+    right: Collection<U>,
+    transformation: (left: T, right: U) -> V,
+): Sequence<V> {
+    return sequence {
+        left.forEach { leftElement ->
+            right.forEach { rightElement ->
+                yield(transformation(leftElement, rightElement))
+            }
+        }
+    }
+}
