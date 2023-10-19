@@ -61,7 +61,6 @@ private class ArrayAsCollection<T>(val values: Array<out T>, val isVarargs: Bool
     override fun contains(element: T): Boolean = values.contains(element)
     override fun containsAll(elements: Collection<T>): Boolean = elements.all { contains(it) }
     override fun iterator(): Iterator<T> = values.iterator()
-
     // override hidden toArray implementation to prevent copying of values array
     public fun toArray(): Array<out Any?> = values.copyToArrayOfAny(isVarargs)
 }
@@ -291,8 +290,7 @@ public inline fun <C, R> C.ifEmpty(defaultValue: () -> R): R where C : Collectio
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER") // false warning, extension takes precedence in some cases
 @kotlin.internal.InlineOnly
-public inline fun <@kotlin.internal.OnlyInputTypes T> Collection<T>.containsAll(elements: Collection<T>): Boolean =
-    this.containsAll(elements)
+public inline fun <@kotlin.internal.OnlyInputTypes T> Collection<T>.containsAll(elements: Collection<T>): Boolean = this.containsAll(elements)
 
 
 /**
@@ -402,7 +400,7 @@ public inline fun <T, K : Comparable<K>> List<T>.binarySearchBy(
     key: K?,
     fromIndex: Int = 0,
     toIndex: Int = size,
-    crossinline selector: (T) -> K?,
+    crossinline selector: (T) -> K?
 ): Int =
     binarySearch(fromIndex, toIndex) { compareValues(selector(it), key) }
 
@@ -475,15 +473,11 @@ internal expect fun checkCountOverflow(count: Int): Int
 
 @PublishedApi
 @SinceKotlin("1.3")
-internal fun throwIndexOverflow() {
-    throw ArithmeticException("Index overflow has happened.")
-}
+internal fun throwIndexOverflow() { throw ArithmeticException("Index overflow has happened.") }
 
 @PublishedApi
 @SinceKotlin("1.3")
-internal fun throwCountOverflow() {
-    throw ArithmeticException("Count overflow has happened.")
-}
+internal fun throwCountOverflow() { throw ArithmeticException("Count overflow has happened.") }
 
 
 internal fun collectionToArrayCommonImpl(collection: Collection<*>): Array<Any?> {
